@@ -331,3 +331,11 @@ The `MYAPP_TEMPLATES_DIR` setting provides flexibility for users who prefer to s
 
 ---
 
+
+## License
+ - This package is licensed under the MIT License. See the LICENSE file for details.
+
+## Credits
+ - This project was created and maintained by Egbie Uku a.k.a EgbieAndersonUku1.
+
+
