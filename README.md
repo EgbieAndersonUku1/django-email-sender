@@ -47,11 +47,26 @@ Method	Description
 
 ```
 
-## 🚀 Installation
+## 🚀 Installation via Manual
 
 This is a standalone utility. Copy the file into your Django project, or install it as a package using PyPI.
 
 ---
+
+## 🚀 Installation via Pypi
+
+[![PyPI version](https://badge.fury.io/py/django-email-sender.svg)](https://pypi.org/project/django-email-sender/)
+
+django-email-sender is a Django package that allows you to send emails using customizable templates, with easy-to-use methods for setting the sender, recipients, subject, and context.
+
+## Installation
+
+To install the package:
+```pip install django-email-sender ```
+
+
+For more details, visit [the PyPI page](https://pypi.org/project/django-email-sender/).
+
 
 ## 🧩 Requirements
 
@@ -60,12 +75,14 @@ This is a standalone utility. Copy the file into your Django project, or install
 
 ---
 
+
 ## 🧪 Basic Usage
 
 Here's a simple example of how to send an email using `EmailSender`:
 
 ```python
-from email_sender import EmailSender
+
+from django_email_sender.email_sender import EmailSender
 
 EmailSender.create()\
     .from_address("no-reply@example.com")\

@@ -48,7 +48,8 @@ project/
 Here's how to send a simple email using `EmailSender`:
 
 ```python
-from emailsender import EmailSender
+
+from django_email_sender.email_sender import EmailSender
 
 # Create the email sender instance
 EmailSender.create()\
