@@ -92,6 +92,18 @@ EmailSender.create()\
     .with_text_template("welcome.txt", folder_name="emails")\
     .with_html_template("welcome.html", folder_name="emails")\
     .send()
+
+ or wrap it around parenthis for a more readable way
+
+ (EmailSender.create()
+    .from_address("no-reply@example.com")
+    .to(["recipient@example.com"])
+    .with_subject("Welcome!")
+    .with_context({"username": "John"})
+    .with_text_template("welcome.txt", folder_name="emails")
+    .with_html_template("welcome.html", folder_name="emails")
+    .send()
+  )
 ```
 
 ### Explanation:
@@ -183,6 +195,21 @@ def send_registration_email(user):
         .with_text_template(text_registration_path, folder_name="emails")\
         .with_html_template(html_registration_path, folder_name="emails")\
         .send()
+
+    or for for a more readable way wrap it around parantheis
+
+     return (
+            EmailSender.create()
+            .from_address(from_email)
+            .to([user.email])
+            .with_subject(subject)
+            .with_context({"username": user.username})
+            .with_text_template(text_registration_path, folder_name="emails")
+            .with_html_template(html_registration_path, folder_name="emails")
+            .send()
+        }
+
+
 ```
 
 ### Advantages of this Approach:
