@@ -1,0 +1,12 @@
+# Include the README files
+include README.md
+include usage.md
+
+# Include the email templates folder
+recursive-include emails_templates *
+
+# Include all Python files
+recursive-include emailsender *.py
+
+# Include any other necessary files (e.g., LICENSE, etc.)
+include LICENSE
