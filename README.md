@@ -20,8 +20,6 @@ While Django already provides a way to send emails, it can become verbose and re
 ---
 
 
----
-
 🛠 Available Methods
 
 Method	Description
@@ -47,9 +45,44 @@ Method	Description
 
 ```
 
-## 🚀 Installation via Manual
+## 🧼 Code Style Tips
 
-This is a standalone utility. Copy the file into your Django project, or install it as a package using PyPI.
+### 🔄 Formatting long method chains
+
+When chaining multiple methods, breaking the chain onto separate lines can cause syntax errors unless you use an escape character (`\`). However, this approach can be difficult to read. A cleaner solution is to wrap the chain in parentheses.
+
+#### 🔹 Using backslashes (`\`)
+
+This works but can become harder to read as the chain grows:
+
+```python
+EmailSender.create()\
+    .from_address(from_email)\
+    .to([user.email])\
+    .with_subject(subject)\
+    .with_context({"username": user.username})\
+    .with_text_template(text_registration_path, folder_name="emails")\
+    .with_html_template(html_registration_path, folder_name="emails")\
+    .send()
+```
+
+#### 🔹 Using parentheses (recommended)
+
+This method is cleaner, more readable, and less error-prone:
+
+```python
+return (
+    EmailSender.create()
+    .from_address(from_email)
+    .to([user.email])
+    .with_subject(subject)
+    .with_context({"username": user.username})
+    .with_text_template(text_registration_path, folder_name="emails")
+    .with_html_template(html_registration_path, folder_name="emails")
+    .send()
+)
+```
+
 
 ---
 
@@ -92,18 +125,6 @@ EmailSender.create()\
     .with_text_template("welcome.txt", folder_name="emails")\
     .with_html_template("welcome.html", folder_name="emails")\
     .send()
-
- or wrap it around parenthis for a more readable way
-
- (EmailSender.create()
-    .from_address("no-reply@example.com")
-    .to(["recipient@example.com"])
-    .with_subject("Welcome!")
-    .with_context({"username": "John"})
-    .with_text_template("welcome.txt", folder_name="emails")
-    .with_html_template("welcome.html", folder_name="emails")
-    .send()
-  )
 ```
 
 ### Explanation:
@@ -195,21 +216,6 @@ def send_registration_email(user):
         .with_text_template(text_registration_path, folder_name="emails")\
         .with_html_template(html_registration_path, folder_name="emails")\
         .send()
-
-    or for for a more readable way wrap it around parantheis
-
-     return (
-            EmailSender.create()
-            .from_address(from_email)
-            .to([user.email])
-            .with_subject(subject)
-            .with_context({"username": user.username})
-            .with_text_template(text_registration_path, folder_name="emails")
-            .with_html_template(html_registration_path, folder_name="emails")
-            .send()
-        }
-
-
 ```
 
 ### Advantages of this Approach:
@@ -363,6 +369,6 @@ The `MYAPP_TEMPLATES_DIR` setting provides flexibility for users who prefer to s
  - This package is licensed under the MIT License. See the LICENSE file for details.
 
 ## Credits
- - This project was created and maintained by Egbie Uku a.k.a EgbieAndersonUku1.
+ -This project was created and maintained by Egbie Uku a.k.a EgbieAndersonUku1.
 
 
