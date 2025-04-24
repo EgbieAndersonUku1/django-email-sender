@@ -499,8 +499,6 @@ source venv/bin/activate      # On Mac or linux use: venv\Scripts\activate
 
 ### 📦 Step 2: Install Dependencies
 
-Use the current Django version at time of release is 5.2
-
 ```bash
 pip install django django-email-sender
 ```
