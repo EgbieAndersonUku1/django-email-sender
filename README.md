@@ -3,12 +3,32 @@
 A clean, reusable, lightweight and chainable utility class for sending emails in Django using templates. It supports both HTML and plain text templates, context injection, and flexible usage — either directly, via subclassing, or abstracted into functions.
 
 
-🧠 Why Use This?
+## Table of Contents
 
-While Django already provides a way to send emails, it can become verbose and repetitive. EmailSender abstracts the boilerplate and lets you send templated emails fluently.
+- [📧 Why Use This?](#why-use-this)
+- [✨ Features](#features)
+- [🧼 Available Methods](#available-methods)
+- [🧼 Code Style Tips](#code-style-tips)
+- [🚀 Installation via PyPI](#installation-via-pypi)
+- [🧩 Requirements](#requirements)
+- [📧 HTML Email Template Example](#html-email-template-example)
+- [📝 Plain Text & Multi-part Email Support](#plain-text--multi-part-email-support)
+- [🧱 Subclassing](#subclassing)
+- [🛠️ Function-Based Abstractions](#function-based-abstractions)
+- [📁 Templates](#templates)
+- [📁 Configuring the Template Directory](#configuring-the-template-directory)
 
 
-## ✨ Features
+
+
+## Why Use This? 
+
+While Django already provides a way to send emails, it can become verbose and repetitive. `EmailSender` abstracts the boilerplate and lets you send templated emails fluently.
+
+[🔝 Back to top](#table-of-contents)
+
+
+## Features
 
 - Chainable API (`.to()`, `.from_address()`, etc.)
 - Supports HTML and plain text templates
@@ -17,24 +37,27 @@ While Django already provides a way to send emails, it can become verbose and re
 - Encourages clean code and reusability
 - Supports subclassing or functional abstractions
 
+[🔝 Back to top](#table-of-contents)
+
 ---
 
 
-🛠 Available Methods
+## Available Methods
 
 Method	Description
-```
 
- - create()	                # Class factory method to instantiate the EmailSender.
- - from_address(email)	    # Sets the sender’s email address.
- - to(recipients)	        # Accepts a string or list of recipient email addresses.
- - with_subject(subject)	# Sets the email subject.
- - with_context(context)	# Context dictionary used in the templates.
- - with_text_template(path)	# Path to the plain text email template.
- - with_html_template(path)	# Path to the HTML email template.
- - with_headers(headers)	# Optional custom headers as a dictionary.
- - send()	                # Sends the email. Returns the number of successfully delivered messages.
 ```
+ - create()	                                                                                    # Class factory method to instantiate the EmailSender.
+ - from_address(email)	                                                                        # Sets the sender’s email address.
+ - to(recipients)	                                                                            # Accepts a string or list of recipient email addresses.
+ - with_subject(subject)	                                                                    # Sets the email subject.
+ - with_context(context)	                                                                    # Context dictionary used in the templates.
+ - with_text_template(folder_name="folder-name-here", template_name="template-name-here.txt")	# when folder name is omitted looks inside emails_template folder
+ - with_html_template(folder_name="folder-name-here", template_name="template-name-here.html")	# when folder name is omitted looks inside emails_templatee.
+ - with_headers(headers)	                                                                    # Optional custom headers as a dictionary.
+ - send()	                                                                                    # Sends the email. Returns the number of successfully delivered messages.
+```
+[🔝 Back to top](#table-of-contents)
 
 
 🚨 Error Handling
@@ -45,7 +68,7 @@ Method	Description
 
 ```
 
-## 🧼 Code Style Tips
+## Code Style Tips
 
 ### 🔄 Formatting long method chains
 
@@ -71,7 +94,7 @@ EmailSender.create()\
 This method is cleaner, more readable, and less error-prone:
 
 ```python
-return (
+
     EmailSender.create()
     .from_address(from_email)
     .to([user.email])
@@ -80,13 +103,13 @@ return (
     .with_text_template(text_registration_path, folder_name="emails")
     .with_html_template(html_registration_path, folder_name="emails")
     .send()
-)
-```
 
+```
+[🔝 Back to top](#table-of-contents)
 
 ---
 
-## 🚀 Installation via Pypi
+## Installation via Pypi
 
 [![PyPI version](https://badge.fury.io/py/django-email-sender.svg)](https://pypi.org/project/django-email-sender/)
 
@@ -100,46 +123,128 @@ To install the package:
 
 For more details, visit [the PyPI page](https://pypi.org/project/django-email-sender/).
 
+[🔝 Back to top](#table-of-contents)
 
-## 🧩 Requirements
+
+## Requirements
 
 - Python 3.8+
 - Django >= 3.2
 
+[🔝 Back to top](#table-of-contents)
+
 ---
 
 
-## 🧪 Basic Usage
+## HTML Email Template Example
 
-Here's a simple example of how to send an email using `EmailSender`:
+`django-email-sender` supports sending beautiful HTML emails using Django templates.
 
-```python
+This example shows a verification email template that you can use out of the box or modify to suit your needs.
 
-from django_email_sender.email_sender import EmailSender
+🗂️ **Save this as**: `templates/emails_templates/emails/verify_email.html`
 
-EmailSender.create()\
-    .from_address("no-reply@example.com")\
-    .to(["recipient@example.com"])\  
-    .with_subject("Welcome!")\
-    .with_context({"username": "John"})\
-    .with_text_template("welcome.txt", folder_name="emails")\
-    .with_html_template("welcome.html", folder_name="emails")\
-    .send()
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Your Email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Verify Your Email Address</h1>
+        <p>Hi {{ username }},</p>
+        <p>Please verify your email address by entering the following code:</p>
+        <div class="code">{{ verification_code }}</div>
+        <p>If you didn't request this, you can safely ignore this email.</p>
+    </div>
+</body>
+</html>
 ```
+
+## Plain Text & Multi-part Email Support
+
+`django-email-sender` supports both **plain text** and **multi-part (HTML + text)** emails. This ensures emails are readable in all clients, including those that don't support HTML.
+
+---
+
+### 📄 Plain Text Email Example
+
+🗂️ **Save this as**: `templates/emails_templates/emails/verify_email.txt`
+
+```txt
+Hi {{ username }},
+
+Please verify your email address by entering the following code:
+
+{{ verification_code }}
+
+If you didn't request this, you can safely ignore this email.
+
+## Usage Example
+
+```
+📨  Multi-part Email (HTML + Plain Text) usage
+
+Use both .with_text_template() and .with_html_template() together to send a multi-part email:
+
+```
+from django_email_sender import EmailSender
+
+EmailSender.create()
+    .from_address("noreply@example.com")
+    .to(["user@example.com"])
+    .with_subject("Please verify your email")
+    .with_context({
+        "username": user.username,
+        "verification_code": "123456"
+    })
+    .with_html_template("verify_email.html", folder_name="emails")
+    .with_text_template("verify_email.txt", folder_name="emails")
+    .send()
+
+```
+
+✨ This approach helps you keep your email logic clean and makes templates easy to design or preview.
+
 
 ### Explanation:
 
 - `.from_address("no-reply@example.com")`: Specifies the sender's email address.
-- `.to(["recipient@example.com"])`: Specifies the recipient's email address.
-- `.with_subject("Welcome!")`: The subject of the email.
-- `.with_context({"username": "John"})`: Context for the email templates, allowing dynamic insertion of values (e.g., the recipient's name).
+- `.to(["recipient@example.com"])`       : Specifies the recipient's email address.
+- `.with_subject("Welcome!")`            : The subject of the email.
+- `.with_context({"username": "John"})`  : Context for the email templates, allowing dynamic insertion of values (e.g., the recipient's name).
 - `.with_text_template("welcome.txt", folder_name="emails")`: The path to the text-based email template. Here, we specify the folder name (`emails`) where the template is stored. If no folder name is provided, it defaults to `email_templates/`.
 - `.with_html_template("welcome.html", folder_name="emails")`: The path to the HTML-based email template. Similarly, you can specify the folder name (`emails`) for this template.
 - `.send()`: Sends the email.
 
 ---
 
-## 🧱 Subclassing
+[🔝 Back to top](#table-of-contents)
+
+
+## Subclassing
 
 You can also subclass the `EmailSender` class to create more specific types of emails.
 
@@ -169,11 +274,13 @@ PasswordResetEmail(user).build().send()
 
 Here, the `PasswordResetEmail` class uses `reset_password.txt` and `reset_password.html` templates from the `emails` folder.
 
+[🔝 Back to top](#table-of-contents)
+
 ---
 
-## 🛠️ Function-Based Abstractions
+## Function-Based Abstractions
 
-For a functional approach, you can also wrap `EmailSender` in specific functions to handle common email use cases.
+🛠️ For a functional approach, you can also wrap `EmailSender` in specific functions to handle common email use cases.
 
 ### Example: Sending a Verification Email
 
@@ -224,14 +331,14 @@ def send_registration_email(user):
 - **Keeps your email templates modular and easy to override**: Templates are organized in subfolders (e.g., `registration`, `verification`), making them easier to manage.
 - **Clean and maintainable codebase**: You don’t have to subclass `EmailSender` each time, reducing complexity.
 
+
+[🔝 Back to top](#table-of-contents)
+
 ---
 
+## Templates
 
----
-
-## 📁 Templates
-
-Templates must reside inside a dedicated `email_templates/` directory, which should exist inside your Django template directory.
+📁  Templates must reside inside a dedicated `email_templates/` directory, which should exist inside your Django template directory.
 
 This folder can contain your own structure to help organise different types of emails. For example:
 
@@ -256,19 +363,21 @@ EmailSender.create()
 
 You **must** have both an `.html` and `.txt` version of the email template. These are required for rich content and email client compatibility.
 
----
-
-
-
-** 📁 Configuring the Template Directory**
-
-EmailSender allows you to easily configure the location of template directories used by the app, including email templates. By default, `EmailSender` will look for templates in a `templates` folder inside the base directory of your project. However, if you'd like to customize the location, you can do so using the `MYAPP_TEMPLATES_DIR` setting in your Django project's `settings.py`.
+[🔝 Back to top](#table-of-contents)
 
 ---
 
 
+## Configuring the Template Directory**
 
-### Default Behaviour
+📁 EmailSender allows you to easily configure the location of template directories used by the app, including email templates. By default, `EmailSender` will look for templates in a `templates` folder inside the base directory of your project. However, if you'd like to customize the location, you can do so using the `MYAPP_TEMPLATES_DIR` setting in your Django project's `settings.py`.
+
+[🔝 Back to top](#table-of-contents)
+
+---
+
+
+## Default Behaviour
 
 By default, EmailSender will look for templates in the following directory:
 
@@ -305,6 +414,8 @@ In this example:
 - EmailSender will look for templates in `{BASE_DIR}/custom_templates/emails_templates/`.
 - If you do not define `MYAPP_TEMPLATES_DIR`, EmailSender will use the default location: `{BASE_DIR}/templates/emails_templates/`.
 
+[🔝 Back to top](#table-of-contents)
+
 ---
 
 ## **How It Works**
@@ -333,6 +444,8 @@ my_project/
 │       └── welcome_email.html
 ```
 
+[🔝 Back to top](#table-of-contents)
+
 ---
 
 ## **Error Handling**
@@ -341,17 +454,23 @@ If EmailSender cannot find the templates in the expected location, it will raise
 
 If `BASE_DIR` is not defined in `settings.py`, an `ImproperlyConfigured` error will be raised to prompt you to define it.
 
+[🔝 Back to top](#table-of-contents)
+
 ---
 
 ## **Fallback Logic**
 
 In case the `MYAPP_TEMPLATES_DIR` is not defined in `settings.py`, EmailSender will automatically fallback to the default template directory (`templates`) without requiring any extra configuration.
 
+[🔝 Back to top](#table-of-contents)
+
 ---
 
 ### Conclusion
 
 The `MYAPP_TEMPLATES_DIR` setting provides flexibility for users who prefer to store their templates in a custom location. By defining this setting in `settings.py`, users can control where the templates for EmailSender (including email templates) are stored, ensuring a smooth and configurable integration.
+
+[🔝 Back to top](#table-of-contents)
 
 ---
 
@@ -371,4 +490,5 @@ The `MYAPP_TEMPLATES_DIR` setting provides flexibility for users who prefer to s
 ## Credits
  -This project was created and maintained by Egbie Uku a.k.a EgbieAndersonUku1.
 
+[🔝 Back to top](#table-of-contents)
 
