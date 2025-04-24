@@ -1,5 +1,8 @@
 # 📧 Django Email Sender Utility
 
+[![Downloads](https://static.pepy.tech/badge/django-email-sender)](https://pepy.tech/project/django-email-sender)
+[![PyPI version](https://badge.fury.io/py/django-email-sender.svg)](https://badge.fury.io/py/django-email-sender)
+
 A clean, reusable, lightweight and chainable utility class for sending emails in Django using templates. It supports both HTML and plain text templates, context injection, and flexible usage — either directly, via subclassing, or abstracted into functions.
 
 
@@ -49,7 +52,7 @@ While Django already provides a way to send emails, it can become verbose and re
 Method	Description
 
 ```
-  - create()                                                                                    
+ - create()                                                                                    
  - from_address(email)                                                                        
  - to(recipients)                                                                            
  - with_subject(subject)                                                                     
@@ -59,6 +62,44 @@ Method	Description
  - with_headers(headers)                                                                     
  - send()
 ```
+
+### 📧 `EmailSender` Class API Reference
+
+#### 🔨 `create()`
+> **Factory method** — Instantiates and returns an `EmailSender` object.
+
+#### 📤 `from_address(email)`
+> **Sets the sender's email address**.  
+> `email`: A string representing the sender's email (e.g. `noreply@yourdomain.com`).
+
+#### 📥 `to(recipients)`
+> **Sets the recipient(s) of the email**.  
+> `recipients`: A string or list of strings with one or more email addresses.
+
+#### 📝 `with_subject(subject)`
+> **Sets the subject line of the email**.  
+> `subject`: A string for the email's subject.
+
+#### 🔧 `with_context(context)`
+> **Provides the context dictionary for rendering templates**.  
+> `context`: A dictionary with variables used in both HTML and text templates.
+
+#### 📄 `with_text_template(folder_name="folder-name-here", template_name="template-name-here.txt")`
+> **Specifies the plain text template**.  
+> If `folder_name` is omitted, defaults to `emails_templates/`.
+
+#### 🌐 `with_html_template(folder_name="folder-name-here", template_name="template-name-here.html")`
+> **Specifies the HTML version of the email template**.  
+> If `folder_name` is omitted, defaults to `emails_templates/`.
+
+#### 🧾 `with_headers(headers)`
+> **Optional method to add custom email headers**.  
+> `headers`: A dictionary of headers (e.g. `{"X-Custom-Header": "value"}`).
+
+#### 📬 `send()`
+> **Sends the email** using the provided configuration and templates.
+
+
 [🔝 Back to top](#table-of-contents)
 
 
@@ -441,7 +482,10 @@ my_project/
 │
 ├── templates/
 │   └── emails_templates/
-│       └── welcome_email.html
+│       ├── welcome_email.html
+│       └── welcome_email.txt
+
+
 ```
 
 #### Custom Setup (with `MYAPP_TEMPLATES_DIR` defined):
@@ -450,7 +494,9 @@ my_project/
 │
 ├── custom_templates/
 │   └── emails_templates/
-│       └── welcome_email.html
+│       ├── welcome_email.html
+│       └── welcome_email.txt
+
 ```
 
 [🔝 Back to top](#table-of-contents)
@@ -570,7 +616,8 @@ This configuration should allow you to send emails via Gmail's SMTP server.
 Create the folder structure :
 
 - See `HTML Email Template Example` and `Plain Text & Multi-part Email Support`
-
+- Replace the folder `emails` with `verification`
+- Do the same with the file names
 
 
 Then add the templates path in `config/settings.py`:
