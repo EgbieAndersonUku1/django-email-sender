@@ -602,7 +602,7 @@ In `core/views.py`:
 
 ```python
 from django.http import HttpResponse
-from email_sender import EmailSender
+from django_email_sender.email_sender import EmailSender
 
 def test_email_view(request):
     (
