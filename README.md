@@ -17,6 +17,8 @@ A clean, reusable, lightweight and chainable utility class for sending emails in
 - [🛠️ Function-Based Abstractions](#function-based-abstractions)
 - [📁 Templates](#templates)
 - [📁 Configuring the Template Directory](#configuring-the-template-directory)
+- [🧩 Putting it all together Example](#putting-it-all-together)
+
 
 
 
@@ -47,15 +49,15 @@ While Django already provides a way to send emails, it can become verbose and re
 Method	Description
 
 ```
- - create()	                                                                                    # Class factory method to instantiate the EmailSender.
- - from_address(email)	                                                                        # Sets the sender’s email address.
- - to(recipients)	                                                                            # Accepts a string or list of recipient email addresses.
- - with_subject(subject)	                                                                    # Sets the email subject.
- - with_context(context)	                                                                    # Context dictionary used in the templates.
- - with_text_template(folder_name="folder-name-here", template_name="template-name-here.txt")	# when folder name is omitted looks inside emails_template folder
- - with_html_template(folder_name="folder-name-here", template_name="template-name-here.html")	# when folder name is omitted looks inside emails_templatee.
- - with_headers(headers)	                                                                    # Optional custom headers as a dictionary.
- - send()	                                                                                    # Sends the email. Returns the number of successfully delivered messages.
+  - create()                                                                                    
+ - from_address(email)                                                                        
+ - to(recipients)                                                                            
+ - with_subject(subject)                                                                     
+ - with_context(context)                                                                     
+ - with_text_template(folder_name="folder-name-here", template_name="template-name-here.txt")  
+ - with_html_template(folder_name="folder-name-here", template_name="template-name-here.html") 
+ - with_headers(headers)                                                                     
+ - send()
 ```
 [🔝 Back to top](#table-of-contents)
 
@@ -129,7 +131,14 @@ For more details, visit [the PyPI page](https://pypi.org/project/django-email-se
 ## Requirements
 
 - Python 3.8+
-- Django >= 3.2
+- Django >= 3.2 < 6.0
+
+## Compatibility
+
+This package has been tested against Django 5.2 (the latest version at the time of release) and is known to work with versions 3.2 and above.
+
+⚠️ **Compatibility with Django 6.x and beyond is not yet guaranteed.** If you're using a future version, proceed with caution and consider opening an issue if anything breaks.
+
 
 [🔝 Back to top](#table-of-contents)
 
@@ -462,15 +471,193 @@ If `BASE_DIR` is not defined in `settings.py`, an `ImproperlyConfigured` error w
 
 In case the `MYAPP_TEMPLATES_DIR` is not defined in `settings.py`, EmailSender will automatically fallback to the default template directory (`templates`) without requiring any extra configuration.
 
-[🔝 Back to top](#table-of-contents)
-
----
 
 ### Conclusion
 
 The `MYAPP_TEMPLATES_DIR` setting provides flexibility for users who prefer to store their templates in a custom location. By defining this setting in `settings.py`, users can control where the templates for EmailSender (including email templates) are stored, ensuring a smooth and configurable integration.
 
 [🔝 Back to top](#table-of-contents)
+
+---
+
+
+## Putting It All Together
+
+This guide shows how to use `django-email-sender` in a Django project to send a verification email.
+
+---
+
+### 🛠 Step 1: Virtual Environment
+
+```bash
+python -m venv venv
+source venv/bin/activate.ps1
+source venv/bin/activate      # On Mac or linux use: venv\Scripts\activate
+```
+
+---
+
+### 📦 Step 2: Install Dependencies
+
+Use the current Django version at time of release is 5.2
+
+```bash
+pip install django django-email-sender
+```
+
+---
+
+### ⚙️ Step 3: Create a Django Project
+
+```bash
+django-admin startproject config .
+python manage.py startapp core
+```
+
+In `config/settings.py`, add `'core'` to `INSTALLED_APPS`.
+
+---
+
+### 🧱 Step 4: Update Django Settings
+Add the following settings to your settings.py file to configure the email backend and other email-related settings.
+
+
+#### Email settings
+```
+EMAIL_BACKEND        = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST           = 'smtp.example.com'  # Replace with your email provider's SMTP server
+EMAIL_PORT           = 587  # Typically 587 for TLS
+EMAIL_USE_TLS        = True  # Enable TLS encryption
+EMAIL_HOST_USER      = 'your-email@example.com'  # Your email address
+EMAIL_HOST_PASSWORD  = 'your-email-password'  # Your email password (or app password if using 2FA)
+DEFAULT_FROM_EMAIL   = EMAIL_HOST_USER  # Default email to send from
+
+```
+
+Note replace
+  ``` 
+    - smtp.example.com with your-email@example.com
+    - your-email-password with your actual email service provider's SMTP details
+
+  ```
+
+If you are using gmail to send emails then the setup would look like 
+
+```
+    # Email Backend
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+    # Email Settings for Gmail
+
+    EMAIL_USE_TLS        = True  
+    EMAIL_HOST           = 'smtp.gmail.com'  
+    EMAIL_PORT           = 587  
+    EMAIL_HOST_USER      = 'your-email@gmail.com'  # Your Gmail address
+    EMAIL_HOST_PASSWORD  = 'your-app-password'     # Use the generated app password (if 2FA is enabled)
+    DEFAULT_FROM_EMAIL   = EMAIL_HOST_USER         # Optional: Set default sender email (same as the one above)
+
+
+```
+### Important Notes:
+
+ - App Password: If you have two-factor authentication (2FA) enabled for your Gmail account, you'll need to create an App Password instead of using your   regular Gmail password. You can generate it in your Google account settings.
+
+ - TLS: Setting EMAIL_USE_TLS = True ensures that emails are sent securely over TLS encryption.
+
+This configuration should allow you to send emails via Gmail's SMTP server.
+
+
+### 🧱 Step 4: Create Email Templates
+
+Create the folder structure :
+
+- See `HTML Email Template Example` and `Plain Text & Multi-part Email Support`
+
+
+
+Then add the templates path in `config/settings.py`:
+
+```python
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],  # This is where you add the line
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+```
+
+---
+
+### 🧪 Step 5: Add a Test View
+
+In `core/views.py`:
+
+```python
+from django.http import HttpResponse
+from email_sender import EmailSender
+
+def test_email_view(request):
+    (
+    EmailSender.create()
+        .from_address("no-reply@example.com")
+        .to(["test@example.com"])
+        .with_subject("Verify Your Email")
+        .with_context({ "username": "John", "verification_code": "123456"})
+        .with_html_template("verification.html", folder_name="verification")
+        .with_text_template("verification.txt", folder_name="verification")
+        .send()
+    )
+    return HttpResponse("Verification email sent!")
+```
+
+---
+
+### 🔗 Step 6: Wire Up URLs
+
+Create `core/urls.py`:
+
+```python
+from django.urls import path
+from .views import test_email_view
+
+urlpatterns = [
+    path("send-verification-email/", test_email_view),
+]
+```
+
+Then include it in `config/urls.py`:
+
+```python
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("", include("core.urls")),
+]
+
+```
+
+---
+
+### 🚀 Step 7: Run and Test
+
+```bash
+python manage.py runserver
+```
+
+Open [http://localhost:8000/send-verification-email/](http://localhost:8000/send-verification-email/) in your browser and check your inbox!
 
 ---
 

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="django-email-sender",
-    version="1.10",
+    version="1.10.1",
     packages=find_packages(),
     install_requires=[
         "Django>=3.2,<6.0",
