@@ -961,44 +961,83 @@ This approach ensures consistency across your codebase and provides a single sou
 
 ###  `EmailSender` and `EmailSenderLogger` Methods
 
-📬Below is a table outlining the methods for both `EmailSender` and `EmailSenderLogger` classes, their chainability, and a short description. This will help you understand which methods are chainable and the functionality each one provides.
+#### **Core Functions**
 
-| Method                         | Chainable | Description                                      | Defined In           |
-|-------------------------------|-----------|--------------------------------------------------|----------------------|
-| `create()`                    | ✅         | Factory method to instantiate the class          | Both                 |
-| `to(recipients)`              | ✅         | Set recipient(s)                                 | Both                 |
-| `with_subject(subject)`       | ✅         | Set the subject of the email                     | Both                 |
-| `with_context(context)`       | ✅         | Set template context                             | Both                 |
-| `with_text_template(...)`     | ✅         | Attach plain text template                       | Both                 |
-| `with_html_template(...)`     | ✅         | Attach HTML template                             | Both                 |
-| `with_headers(headers)`       | ✅         | Add custom headers                               | Both                 |
-| `send(auto_reset=False, ...)` | ❌         | Sends the email                                  | Both                 |
-| `clear_subject()`             | ✅         | Clears the subject field                         | Both                 |
-| `clear_context()`             | ✅         | Clears the context dictionary                    | Both                 |
-| `clear_to_email()`            | ✅         | Clears the recipient(s)                          | Both                 |
-| `clear_from_email()`          | ✅         | Clears the from address                          | Both                 |
-| `clear_html_template()`       | ✅         | Clears the HTML template                         | Both                 |
-| `clear_text_template()`       | ✅         | Clears the text template                         | Both                 |
-| `clear_all_fields()`          | ✅         | Clears all email-related fields                  | Both                 |
-| `add_email_sender_instance()` | ✅         | Inject an EmailSender into the logger wrapper    | EmailSenderLogger    |
-| `config_logger()`          | ✅         | Configure logger object and log level            | EmailSenderLogger    |
-| `add_log_model()`             | ✅         | Attach a model to persist email logs             | EmailSenderLogger    |
-| `log_only_fields()`           | ✅         | Only log specific fields                         | EmailSenderLogger    |
-| `exclude_fields_from_logging()`| ✅        | Exclude fields from logging                      | EmailSenderLogger    |
-| `start_logging_session()`     | ✅         | Enable logging mode                              | EmailSenderLogger    |
-| `stop_logging_session()`      | ✅         | Stop logging and finalise log object             | EmailSenderLogger    |
-| `pause_logging()`             | ✅         | Temporarily stop logging changes                 | EmailSenderLogger    |
-| `resume_logging()`            | ✅         | Resume logging after a pause                     | EmailSenderLogger    |
-| `enable_verbose()`            | ✅         | Enable verbose logging                           | EmailSenderLogger    |
-| `disable_verbose()`           | ✅         | Disable verbose logging                          | EmailSenderLogger    |
-| `set_custom_formatter()`      | ✅         | Set a formatter for custom log formatting        | EmailSenderLogger    |
-| `set_traceback()`             | ✅         | Enable stack trace logging on errors             | EmailSenderLogger    |
-| `enable_email_meta_data_save()`| ✅        | Enables saving of email meta to the database     | EmailSenderLogger    |
-| `is_email_sent`               | ❌         | Property that returns if the email was sent      | EmailSenderLogger    |
-| `email_delivery_count`        | ❌         | Property that returns number of deliveries       | EmailSenderLogger    |
-| `email_meta_data`             | ❌         | Returns metadata of sent email                   | EmailSenderLogger    |
-| `payload`                     | ❌         | Property returning the full internal state       | EmailSenderLogger    |
-| `return_successful_payload()` | ❌         | Returns a copy of the payload (audit fields)     | EmailSenderLogger    |
+| Name                           | Type    | Chainable | Description                                      | Defined In           |
+|---------------------------------|---------|-----------|--------------------------------------------------|----------------------|
+| `create()`                     | Method  | ✅         | Factory method to instantiate the class          | Both                 |
+| `to(recipients)`               | Method  | ✅         | Set recipient(s)                                 | Both                 |
+| `with_subject(subject)`        | Method  | ✅         | Set the subject of the email                     | Both                 |
+| `with_context(context)`        | Method  | ✅         | Set template context                             | Both                 |
+| `with_text_template(...)`      | Method  | ✅         | Attach plain text template                       | Both                 |
+| `with_html_template(...)`      | Method  | ✅         | Attach HTML template                             | Both                 |
+| `with_headers(headers)`        | Method  | ✅         | Add custom headers                               | Both                 |
+| `send(auto_reset=False, ...)`  | Method  | ❌         | Sends the email                                  | Both                 |
+| `clear_subject()`              | Method  | ✅         | Clears the subject field                         | Both                 |
+| `clear_context()`              | Method  | ✅         | Clears the context dictionary                    | Both                 |
+| `clear_to_email()`             | Method  | ✅         | Clears the recipient(s)                          | Both                 |
+| `clear_from_email()`           | Method  | ✅         | Clears the from address                          | Both                 |
+| `clear_html_template()`        | Method  | ✅         | Clears the HTML template                         | Both                 |
+| `clear_text_template()`        | Method  | ✅         | Clears the text template                         | Both                 |
+| `clear_all_fields()`           | Method  | ✅         | Clears all email-related fields                  | Both                 |
+
+#### **Database Access**
+
+| Name                           | Type    | Chainable | Description                                      | Defined In           |
+|---------------------------------|---------|-----------|--------------------------------------------------|----------------------|
+| `add_email_sender_instance()`  | Method  | ✅         | Inject an EmailSender into the logger wrapper    | `EmailSenderLogger`  |
+| `add_log_model()`              | Method  | ✅         | Attach a model to persist email logs             | `EmailSenderLogger`  |
+| `enable_email_meta_data_save()`| Method  | ✅         | Enables saving of email meta to the database     | `EmailSenderLogger`  |
+
+#### **Logging and Verbose Functions**
+
+| Name                           | Type    | Chainable | Description                                      | Defined In           |
+|---------------------------------|---------|-----------|--------------------------------------------------|----------------------|
+| `log_only_fields()`            | Method  | ✅         | Only log specific fields                         | `EmailSenderLogger`  |
+| `exclude_fields_from_logging()`| Method  | ✅         | Exclude fields from logging                      | `EmailSenderLogger`  |
+| `start_logging_session()`      | Method  | ✅         | Enable logging mode                              | `EmailSenderLogger`  |
+| `stop_logging_session()`       | Method  | ✅         | Stop logging and finalise log object             | `EmailSenderLogger`  |
+| `pause_logging()`              | Method  | ✅         | Temporarily stop logging changes                 | `EmailSenderLogger`  |
+| `resume_logging()`             | Method  | ✅         | Resume logging after a pause                     | `EmailSenderLogger`  |
+| `enable_verbose()`             | Method  | ✅         | Enable verbose logging                           | `EmailSenderLogger`  |
+| `disable_verbose()`            | Method  | ✅         | Disable verbose logging                          | `EmailSenderLogger`  |
+| `set_custom_formatter()`       | Method  | ✅         | Set a formatter for custom log formatting        | `EmailSenderLogger`  |
+| `set_traceback()`              | Method  | ✅         | Enable stack trace logging on errors             | `EmailSenderLogger`  |
+| `configure_logger()`           | Method  | ✅         | Configure logger object and log level            | `EmailSenderLogger`  |
+
+
+
+#### **Logging Level Methods**
+
+| Name                           | Type    | Chainable | Description                                      | Defined In           |
+|---------------------------------|---------|-----------|--------------------------------------------------|----------------------|
+| `to_info()`                    | Method  | ✅         | Changes the level to info                         | `EmailSenderLogger`  |
+| `to_debug()`                   | Method  | ✅         | Changes the level to debug                        | `EmailSenderLogger`  |
+| `to_warning()`                 | Method  | ✅         | Changes the level to warning                      | `EmailSenderLogger`  |
+| `to_error()`                   | Method  | ✅         | Changes the level to error                        | `EmailSenderLogger`  |
+
+   
+#### **Properties and Metadata**
+
+| Name                           | Type      | Chainable | Description                                      | Defined In           |
+|---------------------------------|-----------|-----------|--------------------------------------------------|----------------------|
+| `is_email_sent`                | Property  | ❌         | Property that returns if the email was sent      | `EmailSenderLogger`  |
+| `email_delivery_count`         | Property  | ❌         | Property that returns number of deliveries       | `EmailSenderLogger`  |
+| `email_meta_data`              | Property  | ❌         | Returns metadata of sent email                   | `EmailSenderLogger`  |
+| `payload`                      | Property  | ❌         | Property returning the full internal state       | `EmailSenderLogger`  |
+| `return_successful_payload()`  | Property  | ❌         | Returns a copy of the payload (audit fields)     | `EmailSenderLogger`  |
+
+---
+
+### **Explanation of Categories:**
+
+- **Core Functions**: The main email sending functionality, like setting recipients, subject, context, templates, headers, and clearing fields.
+  
+- **Database Access**: Methods that deal with interacting with a database, logging email details, saving email meta data, and configuring the logger.
+  
+- **Logging and Verbose Functions**: Methods that manage the logging session, verbosity, and custom log formatting.
+
+- **Properties and Metadata**: Methods that return properties related to the email state, including whether it was sent, the delivery count, and email metadata.
 
 
 ---
