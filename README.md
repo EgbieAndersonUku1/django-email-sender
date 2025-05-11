@@ -76,6 +76,7 @@ It provides a clean, reusable, and chainable utility class for sending emails in
 - [🛠️ Example Setting up a simple Logger with EmailSenderLogger](#example-setting-up-a-simple-logger-with-emailsenderlogger)
 - [🔁 Reuse the Logger and Formatter Across Multiple Emails](#reuse-the-logger-and-formatter-across-multiple-emails)
 - [🗣️ Turning on Verbose Mode](#turning-on-verbose-mode)
+- [🧭 Tracing Method Chains and logging errors with `set_traceback`](#tracing-method-chains-and-logging-errors-with-set_traceback)
 - [⚙️ Setting up an advanced logger](#setting-up-an-advanced-logger)
 - [🔄 Advanced Tip: Rotate Log Files Automatically](#advanced-tip-rotate-log-files-automatically)
 - [📈 Advanced Logger Usage](#advanced-logger-usage)
@@ -736,12 +737,6 @@ Method Description
 
 ---
 
-#### 🔍 `set_traceback(custom_formatter: bool = False)`
-> Enables traceback logging.  
-> If `custom_formatter` is `True`, applies your custom formatting logic.
-
----
-
 #### 🛠 `config_logger(logger: Logger, log_level: LoggerType)`
 > Integrates an external Python logger and sets its log level.
 ---
@@ -865,6 +860,12 @@ Use the following methods to manage logging dynamically during the email sending
 > This ensures the original audit trail remains unmodified.
 
 ---
+
+### 🧠 set_traceback(show_traceback: bool, method_tracing: bool = False )
+> method_tracing: show exactly which methods were called during your email building process, `set_traceback()` is your friend. It provides a step-by-step breakdown of the chained method calls that lead up to sending an email. Note, this must be set to `True`, default is `False`
+> show_traceback: shows you a traceback error including the point where the error originated.
+   
+---    
 
 #### 🛑 `log_only_fields(*fields)`
 > Restricts logging to specific fields (e.g., only `subject` or `to`).  
@@ -1002,7 +1003,7 @@ This approach ensures consistency across your codebase and provides a single sou
 | `enable_verbose()`             | Method  | ✅         | Enable verbose logging                           | `EmailSenderLogger`  |
 | `disable_verbose()`            | Method  | ✅         | Disable verbose logging                          | `EmailSenderLogger`  |
 | `set_custom_formatter()`       | Method  | ✅         | Set a formatter for custom log formatting        | `EmailSenderLogger`  |
-| `set_traceback()`              | Method  | ✅         | Enable stack trace logging on errors             | `EmailSenderLogger`  |
+| `set_traceback()`              | Method  | ✅         | Enable stack trace logging on errors and the order methods were called           | `EmailSenderLogger`  |
 | `config_logger()`           | Method  | ✅         | Configure logger object and the log level            | `EmailSenderLogger`  |
 
 
@@ -1362,6 +1363,146 @@ But if you're only sending 1–2 emails each time, it's easier to just create a 
 
 ---
 
+[🔝 Back to top](#table-of-contents)
+
+###  Tracing Method Chains and logging errors with `set_traceback`
+
+🧭 If you ever wanted to know exactly which methods were called during your email building process, `set_traceback()` is your friend. It provides a step-by-step breakdown of the chained method calls that lead up to sending an email.
+
+#### This is especially useful for debugging complex chains, understanding the flow, or simply verifying that everything is working in the expected order. 
+
+### Why Use Method Tracing?
+
+When working with complex chains of method calls or deeply nested logic, it can be difficult to understand the exact flow of execution. Method tracing provides a powerful way to gain visibility into what's happening under the hood.
+
+- **Debug complex chains** with greater ease  
+- **Understand execution flow** step-by-step  
+- **Verify correct method ordering and dependencies**
+
+### Enabling chain tracing
+
+> To enable method tracing, you must:
+> - Set `method_tracing ` parameter in the `set_traceback` method to `True`
+> - Call `enable_verbose()`
+> - set the level to `Debug` either by the `config_logger` or using the `.to_debug()` method
+
+Chain tracing is only shown at the `debug level` and when `enable_verbose` mode is enabled to avoid overwhelming the user with too much information.
+
+### Here's how it works:
+
+1. **Method Chain Tracking**  
+   The method chain begins from the initial call (e.g., `create()`) and continues through all chained methods like `to()`, `with_subject()`, and so on. Each method gets logged in real-time.
+
+### ⚙️ Behind the Scenes (Optional Detail for Power Users)
+
+Internally, `show_traceback()` appends each method name and its arguments to a trace log as the chain is built. This is particularly helpful in:
+
+- Debugging method order issues
+- Catching repeated or conflicting method calls
+- Understanding flow when extending or contributing to the library
+
+
+### 🧪 Example Output from `set_traceback(method_tracing=True)`
+
+When `set_traceback(method_tracing=True)` is enabled, you’ll see something like this in your logs or console (depending on your logger configuration):
+
+```
+
+\[TRACE] Method Chain Started:
+→ create()
+→ start\_logging\_session()
+→ config\_logger()
+→ add\_email\_sender\_instance()
+→ from\_address()
+→ to()
+→ with\_subject()
+→ with\_text\_template()
+→ send()
+
+````
+
+Each arrow (`→`) represents a method call in your builder chain. This gives you full visibility into what’s been run before `.send()` is triggered.
+
+---
+
+2. **Verbose Debugging**  
+   If `show_traceback=True` is enabled, **stack trace information is included** in the logs when an error happens. This includes:
+   - The sequence of method calls leading to the error.
+   - Detailed information about the error (e.g., the specific line number, method name, and error message).
+   
+   This allows you to track back to the root cause of an issue quickly and effectively.
+
+### Example of an error traceback:
+
+Consider an email sending process like this:
+
+```python
+
+# Assume the neccessary modules have been imported
+
+email = EmailSenderLogger.create() \
+       .start_logging_session()\
+        .enable_verbose()\
+        .add_email_sender_instance(EmailSender())\
+        .config_logger(logger, LoggerType.DEBUG)\
+        .set_traceback(method_tracing=True, show_traceback=True)\
+        .to("recipient@example.com") \
+        .with_subject("Test Email") \
+        .with_html_template("invalid_test_template.html") \
+
+    .... other methods here
+    .send()
+```
+
+Now, let’s assume that there’s an error while sending due to an invalid template, and you've set `show_traceback=True`. The logged traceback might look like this:
+
+```
+[DEBUG][METHOD_TRACE] Method Chain Started: EmailSenderLogger._get_environment() → EmailSenderLogger._create_meta_data() → EmailSenderLogger._validate_template() → EmailSenderLogger._send()
+--- Error Traceback ---
+File "email_sender.py", line 145, in _send
+    raise TemplateNotFoundError("HTML template not found")
+TemplateNotFoundError: HTML template not found
+```
+
+### Breakdown of what happens:
+
+* The log shows the exact method calls that were made in the process.
+* The error is flagged, and the traceback reveals where the failure occurred— in the `_send()` method, specifically due to a `TemplateNotFoundError`.
+* You can now see **exactly** which method caused the problem and what the error was, making it easier to debug.
+
+### Why is this useful?
+
+* **Debugging Complex Chains**: If you're chaining many methods together, it’s often hard to track down where an error happens. `show_traceback=True` ensures that you know exactly where to look.
+
+* **Detailed Logging**: You get more than just a "method failed" message; you get a full traceback that includes method names, file locations, and specific error messages, which can greatly speed up debugging.
+
+
+You can also do something like this to ensure that you always have a traceback
+
+```python
+
+# Assume the necessary modules have been imported
+import os
+
+email_sender = (
+    EmailSenderLogger.create()
+        .start_logging_session()
+        .config_logger(logger)
+        .add_email_sender_instance(EmailSender)
+        .from_address("dev@example.com")
+        .to("debug@example.com")
+        .with_subject("Dev Mode Email")
+        .with_text_template("dev_template.txt", "emails")
+)
+
+# Automatically enable tracing in dev
+if os.getenv("ENV") == "development":
+    email_sender.set_traceback(True, True)
+    email_sender.enable_verbose()
+
+email_sender.send()
+
+```
 [🔝 Back to top](#table-of-contents)
 
 
