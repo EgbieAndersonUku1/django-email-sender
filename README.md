@@ -1003,7 +1003,7 @@ This approach ensures consistency across your codebase and provides a single sou
 | `disable_verbose()`            | Method  | ✅         | Disable verbose logging                          | `EmailSenderLogger`  |
 | `set_custom_formatter()`       | Method  | ✅         | Set a formatter for custom log formatting        | `EmailSenderLogger`  |
 | `set_traceback()`              | Method  | ✅         | Enable stack trace logging on errors             | `EmailSenderLogger`  |
-| `configure_logger()`           | Method  | ✅         | Configure logger object and log level            | `EmailSenderLogger`  |
+| `config_logger()`           | Method  | ✅         | Configure logger object and the log level            | `EmailSenderLogger`  |
 
 
 
