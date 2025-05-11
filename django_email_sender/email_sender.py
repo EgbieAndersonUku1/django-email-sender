@@ -1,20 +1,35 @@
-from typing import Optional, List, Dict, Union
+from __future__ import annotations
+
+from django.utils.translation import gettext_lazy as _
+from typing import Optional, Dict
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from pathlib import Path
 from os.path import join, exists
+from secrets import token_hex
 
-from django_email_sender.exceptions import EmailTemplateDirNotFound, EmailTemplateNotFound, TemplateDirNotFound, EmailSenderError
+from django_email_sender.exceptions import (
+    EmailTemplateNotFound,
+    TemplateDirNotFound,
+    ContextIsNotADictionary,
+    EmailSenderBaseException,
+    EmailSendError,
+    IncorrectEmailSenderFieldType,
+   
+)
 
+from django_email_sender.messages import TemplateMessages, EmailMessages, ContextMessages, FieldMessages
+from django_email_sender.email_sender_constants import EmailSenderConstants
 from .utils import get_template_dirs
+from .translation import safe_set_language
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-dirs                 = get_template_dirs()
-TEMPLATES_DIR        = dirs["TEMPLATES_DIR"]
-EMAIL_TEMPLATES_DIR  = dirs["EMAIL_TEMPLATES_DIR"]
-
+dirs                = get_template_dirs()
+TEMPLATES_DIR       = dirs["TEMPLATES_DIR"]
+EMAIL_TEMPLATES_DIR = dirs["EMAIL_TEMPLATES_DIR"]
 
 
 class EmailSender:
@@ -26,10 +41,12 @@ class EmailSender:
     To use it in a Django eco-system, the following settings must be configured:
 
     settings.py:
-    EMAIL_USE_TLS = True  
-    EMAIL_HOST = 'smtp.gmail.com'  
-    EMAIL_PORT = 587  
-    EMAIL_HOST_USER = 'some@emailhere.com'  
+    
+    EMAIL_BACKEND       = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_USE_TLS       = True  
+    EMAIL_HOST          = 'host'  
+    EMAIL_PORT          = 587  
+    EMAIL_HOST_USER     = 'some@emailhere.com'  
     EMAIL_HOST_PASSWORD = 'password'
 
     templates:
@@ -84,13 +101,27 @@ class EmailSender:
         Initialize an empty email configuration.
         """
         self.from_email: Optional[str]    = None
-        self.to_email: List[str]          = []
+        self.to_email: str                = None
         self.subject: Optional[str]       = None
         self.html_template: Optional[str] = None
         self.text_template: Optional[str] = None
-        self.context: Dict                = {}
-        self.headers: Dict                = {}
+        self.context: Dict[str, str]      = {}
+        self.headers: Dict[str, str]      = {}
+        self.list_of_recipients           = set()
+        self.email_id                     = token_hex()
+      
+        self.fields_to_reset = {
+            EmailSenderConstants.Fields.FROM_EMAIL.value: None,
+            EmailSenderConstants.Fields.TO_EMAIL.value: [],
+            EmailSenderConstants.Fields.SUBJECT.value: None,
+            EmailSenderConstants.Fields.HTML_TEMPLATE.value: None,
+            EmailSenderConstants.Fields.TEXT_TEMPLATE.value: None,
+            EmailSenderConstants.Fields.CONTEXT.value: {},
+            EmailSenderConstants.Fields.HEADERS.value: {},
+        }
 
+        safe_set_language()
+            
     @classmethod
     def create(cls) -> "EmailSender":
         """
@@ -111,24 +142,28 @@ class EmailSender:
         Returns:
             EmailSender: The current instance for chaining.
         """
+        if not email:
+            return self
+        
         self.from_email = email
         return self
 
-    def to(self, recipients: Union[str, List[str]]) -> "EmailSender":
+    def to(self, recipient: str) -> "EmailSender":
         """
         Set the recipient(s) of the email.
 
-        If a single email is provided as a string, it converts it into a list.
-        Otherwise, it assumes a list of email addresses.
-        
+        sets a single recipient to the recipient field
+
         Args:
             recipients (Union[str, List[str]]): A single email address or a list of email addresses.
-            
 
         Returns:
             EmailSender: The current instance for chaining.
         """
-        self.to_email = [recipients] if isinstance(recipients, str) else recipients
+        if not recipient:
+            return self
+        
+        self.to_email = recipient
         return self
 
     def with_subject(self, subject: str) -> "EmailSender":
@@ -141,7 +176,8 @@ class EmailSender:
         Returns:
             EmailSender: The current instance for chaining.
         """
-        self.subject = subject
+      
+        self.subject = subject 
         return self
 
     def with_context(self, context: Dict) -> "EmailSender":
@@ -154,7 +190,15 @@ class EmailSender:
         Returns:
             EmailSender: The current instance for chaining.
         """
+
+        if not isinstance(context, dict):
+            raise ContextIsNotADictionary(ContextMessages.format_message(msg=ContextMessages.CONTEXT_ERROR, 
+                                                                         context=context, 
+                                                                         context_type=type(context)
+                                                                         ))
+
         self.context = context
+        
         return self
 
     def with_html_template(self, template_name: str, folder_name: str = None) -> "EmailSender":
@@ -170,6 +214,9 @@ class EmailSender:
         Returns:
             EmailSender: The current instance for chaining.
         """
+        if not template_name:
+            return self
+         
         self.html_template = self._create_path(template_name, folder_name)
         return self
 
@@ -186,10 +233,31 @@ class EmailSender:
         Returns:
             EmailSender: The current instance for method chaining.
         """
+        
         self.text_template = self._create_path(template_name, folder_name)
         return self
 
-    def _does_template_path_exists(self, email_path):
+    def add_new_recipient(self, recipient: str) -> "EmailSender":
+        """
+        Adds an additional email recipient to the list of recipients.
+
+        This method ensures no duplicate recipients are added by storing 
+        them internally in a set.
+
+        Args:
+            recipient (str): The email address to add as a recipient.
+         """
+        
+        if not recipient or recipient is None:
+            return self 
+        
+        if not isinstance(recipient, str):
+            raise IncorrectEmailSenderFieldType(FieldMessages.FIELD_TYPE_IS_INCORRECT, expected_type=recipient, received_type=type(recipient))
+            
+        self.list_of_recipients.add(recipient)
+        return self
+            
+    def _raise_if_template_path_not_found(self, email_path: str) -> None:
         """
         Checks whether a given template path exists within the email templates directory.
 
@@ -206,14 +274,16 @@ class EmailSender:
             EmailTemplateDirNotFound: If the 'email_templates' folder is missing.
             TemplateNotFound: If the given email template file does not exist.
         """
-        
+     
         if not exists(TEMPLATES_DIR):
-           raise TemplateDirNotFound(f"The templates directory wasn't found. Got template with path - {TEMPLATES_DIR}")
+            raise TemplateDirNotFound(message=TemplateMessages.PRIMARY_TEMPLATE_MISSING)
+
         if not exists(EMAIL_TEMPLATES_DIR):
-           raise EmailTemplateDirNotFound(f"The emails_templates directory wasn't found. Got path - {EMAIL_TEMPLATES_DIR}")
+            raise EmailTemplateNotFound(message=TemplateMessages.format_message(TemplateMessages.EMAIL_TEMPLATE_NOT_FOUND, path=EMAIL_TEMPLATES_DIR))
+
         if not exists(email_path):
-            raise EmailTemplateNotFound(f"The email template path wasn't found. Got email path - {email_path}")
-    
+            raise EmailTemplateNotFound(message=TemplateMessages.format_message(TemplateMessages.TEMPLATE_NOT_FOUND, path=email_path))
+
     def _create_path(self, template_name: str, folder_name: str = None):
         """
         Constructs the full path to an email template file inside the 'email_templates' directory.
@@ -231,17 +301,19 @@ class EmailSender:
             ValueError: If template_name is not a string, or folder_name is not a string or None.
         """
 
-        if folder_name != None and not isinstance(folder_name, str):
-            raise ValueError("The folder name must be a string or None")
-        if not isinstance(template_name, str):
-            raise ValueError("The template name must be a string or None")
-        
-        if folder_name is None:
-            return join(EMAIL_TEMPLATES_DIR, template_name)
-        return join(EMAIL_TEMPLATES_DIR, folder_name, template_name)
-            
+        if folder_name is not None and not isinstance(folder_name, str):
+            error_msg = _("The folder path must be a string or None. Got type '{folder_type}' for folder")
+            raise EmailSenderBaseException(error_msg.format(folder_type=type(folder_name).__name__))
 
-    def with_headers(self, headers: Optional[Dict] = None) -> "EmailSender":
+        if template_name is not None and not isinstance(template_name, str):
+            error_msg = _("The template name path must be a string or None. Got type '{template_type}' for folder")
+            raise EmailSenderBaseException(error_msg.format(template_type=type(template_name).__name__))
+
+        if folder_name is None:
+            return join(EMAIL_TEMPLATES_DIR, template_name)  
+        return join(EMAIL_TEMPLATES_DIR, folder_name, template_name)
+      
+    def with_headers(self, headers: Dict) -> "EmailSender":
         """
         Set custom headers for the email.
 
@@ -256,16 +328,89 @@ class EmailSender:
         """
         if headers is None:
             headers = {}
+                      
         if not isinstance(headers, dict):
-            raise TypeError(f"Headers must be a dictionary, got {type(headers)} instead.")
+            error_msg = _("'Headers' must be a dictionary but got type '{headers_type}' instead")
+            raise EmailSenderBaseException(error_msg.format(headers_type=type(headers).__name__))
+                
         self.headers = headers
         return self
 
-    def send(self) -> int:
+    def _validate(self):
+        """ """
+        if not all([self.from_email, self.to_email, self.subject, self.html_template, self.text_template]):
+            
+            error_msg =  _("All email components (from, to, subject, html, text) must be set before sending.")
+            raise EmailSenderBaseException(error_msg)
+
+        self._raise_if_template_path_not_found(TEMPLATES_DIR)
+        self._raise_if_template_path_not_found(EMAIL_TEMPLATES_DIR)
+        self._raise_if_template_path_not_found(self.text_template)
+        self._raise_if_template_path_not_found(self.html_template)
+
+    def clear_from_email(self) -> "EmailSender":
+        """Clears the field of the sender"""
+        self.from_email = None
+        return self
+
+    def clear_to_email(self) -> "EmailSender" :
+        """Clears the recipient field"""
+        self.to_email = []
+        return self
+
+    def clear_subject(self) -> "EmailSender":
+        """Clear the subject"""
+        self.subject = None
+        return self
+
+    def clear_context(self) -> "EmailSender":
+        """Clear the context field"""
+        self.context = {}
+        return self
+
+    def clear_html_template(self) -> "EmailSender":
+        """clear the html template path"""
+        self.html_template = None
+        return self
+
+    def clear_text_template(self) -> "EmailSender":
+        """clear the text template path"""
+        self.text_template = None
+        return self
+
+    def clear_all_fields(self)  -> "EmailSender":
+        """Clear all the fields"""
+
+        for field_name, default_field in self.fields_to_reset.items():
+            setattr(self, field_name, default_field)
+        return self
+
+    def _get_recipients(self):
+        """
+        Returns a combined list of email recipients.
+
+        This includes the primary recipient `self.to_email` (if provided and not None)
+        and any additional recipients from `self.list_of_recipients`.
+
+        Returns:
+            list: A list of recipient email addresses.
+        """
+        recipients = []
+        
+        if self.to_email:
+            recipients.append(self.to_email)
+        if self.list_of_recipients:
+            recipients.extend(self.list_of_recipients)
+        return recipients
+
+    def send(self, auto_reset: bool = False) -> int:
         """
         Send the email using Django's email backend.
 
         This will render the text and HTML templates, attach the HTML alternative, and send the email.
+
+        Args:
+            auto_reset (bool): If auto_reset is True, the instance is reset after sending.
 
         Raises:
             ValueError: If any required fields are missing before sending.
@@ -274,12 +419,8 @@ class EmailSender:
         Returns:
             int: The number of successfully delivered messages (typically 1 if successful).
         """
-        if not all([self.from_email, self.to_email, self.subject, self.html_template, self.text_template]):
-            raise ValueError("All email components (from, to, subject, html, text) must be set before sending.")
-
-        self._does_template_path_exists(self.text_template)
-        self._does_template_path_exists(self.html_template)
-        
+        self._validate()
+            
         text_content = render_to_string(self.text_template, context=self.context)
         html_content = render_to_string(self.html_template, context=self.context)
 
@@ -287,13 +428,23 @@ class EmailSender:
             subject=self.subject,
             body=text_content,
             from_email=self.from_email,
-            to=self.to_email,
-            headers=self.headers or None
+            to=self._get_recipients(),
+            headers=self.headers or {},
         )
-
+     
         msg.attach_alternative(html_content, "text/html")
-        
+
         try:
-            return msg.send()
-        except EmailSenderError as e:
-            raise EmailSenderError(str(e))
+            resp = msg.send()
+            is_sent = True if resp > 0 else False
+            if auto_reset:
+                self.clear_all_fields()
+    
+            return (resp, is_sent)
+
+        except EmailSendError as e:
+            error_msg = EmailMessages.FAILED_TO_SEND_EMAIL.format(from_user=self.from_address, to_user=self.to, error=str(e))
+            raise EmailSendError(message=error_msg)
+        except EmailSenderBaseException as e:
+          raise EmailSendError(message=EmailMessages.ERROR_OCCURED, e=_("Something went wrong and the email wasn't sent"))
+

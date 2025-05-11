@@ -1,0 +1,55 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-09 23:58+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Simplified Chinese <LL@li.org>\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: .\django_email_sender\translation.py:81
+msgid "Setting language to {}"
+msgstr "设置语言为 {}"
+
+#: .\django_email_sender\validation.py:26
+msgid "Custom formatter must be a callable function."
+msgstr "自定义格式化器必须是可调用的函数。"
+
+#: .\django_email_sender\validation.py:50
+msgid ""
+"Custom formatter must accept either one parameter (Exception) or two "
+"parameters (Exception, str)."
+msgstr "自定义格式化器必须接受一个参数（Exception）或两个参数（Exception, str）。"
+
+#: .\django_email_sender\validation.py:55
+msgid "Custom formatter must return a string."
+msgstr "自定义格式化器必须返回一个字符串。"
+
+#: .\django_email_sender\validation.py:57
+#, python-brace-format
+msgid ""
+"\n"
+"                          Error while validating custom formatter: {e} \n"
+"                          Make sure your formatter accepts the correct "
+"arguments and returns a string.\n"
+"                        "
+msgstr ""
+"\n"
+"                          验证自定义格式化器时出错: {e} \n"
+"                          确保您的格式化器接受正确的参数并返回字符串。\n"
+"                        "
+
+#: .\test_localisation.py:18
+msgid "The folder name must be a string or None"
+msgstr "文件夹名称必须是字符串或None"

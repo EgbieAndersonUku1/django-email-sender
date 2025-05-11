@@ -1,0 +1,55 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-09 23:38+0100\n"
+"PO-Revision-Date: 2025-05-09 23:50+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Arabic <LL@li.org>\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: .\django_email_sender\translation.py:81
+msgid "Setting language to {}"
+msgstr "تعيين اللغة إلى {}"
+
+#: .\django_email_sender\validation.py:26
+msgid "Custom formatter must be a callable function."
+msgstr "يجب أن يكون المنسق المخصص دالة قابلة للاستدعاء."
+
+#: .\django_email_sender\validation.py:50
+msgid ""
+"Custom formatter must accept either one parameter (Exception) or two "
+"parameters (Exception, str)."
+msgstr "يجب أن يقبل المنسق المخصص إما وسيطًا واحدًا (استثناء) أو وسيطين (استثناء، سلسلة نصية)."
+
+#: .\django_email_sender\validation.py:55
+msgid "Custom formatter must return a string."
+msgstr "يجب أن يُرجع المنسق المخصص سلسلة نصية."
+
+#: .\django_email_sender\validation.py:57
+#, python-brace-format
+msgid ""
+"\n"
+"                          Error while validating custom formatter: {e} \n"
+"                          Make sure your formatter accepts the correct "
+"arguments and returns a string.\n"
+"                        "
+msgstr ""
+"\n"
+"                          حدث خطأ أثناء التحقق من صحة المنسق المخصص: {e} \n"
+"                          تأكد من أن المنسق يقبل الوسيطات الصحيحة ويُرجع سلسلة نصية.\n"
+"                        "
+
+#: .\test_localisation.py:18
+msgid "The folder name must be a string or None"
+msgstr "يجب أن يكون اسم المجلد سلسلة نصية أو None"

@@ -2,10 +2,14 @@ from setuptools import setup, find_packages
 
 setup(
     name="django-email-sender",
-    version="1.10.2",
+    version="2.0.0",
     packages=find_packages(),
+    include_package_data=True,
     install_requires=[
         "Django>=3.2,<6.0",
+        "requests>=2.31",
+        "beautifulsoup4>=4.13",
+        "nh3>=0.2.21",
     ],
     author="Egbie Uku",
     author_email="egbieuku@hotmail.com",
@@ -21,9 +25,24 @@ setup(
         "Framework :: Django :: 5.0",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    python_requires='>=3.7',
-    
+    keywords=[
+        "django", 
+        "email", 
+        "email-sender", 
+        "html-email", 
+        "plain-text-email",
+        "email-utility", 
+        "rich-template",
+        "chaining", 
+        "logger", 
+        "logging", 
+        "database-integration", 
+        "email-templates", 
+        "django-email"
+    ],
+    python_requires='>=3.10, <3.13',
 )
-
-

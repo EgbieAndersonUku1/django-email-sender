@@ -1,12 +1,18 @@
-# Include the README files
 include README.md
-include usage.md
-
-# Include the email templates folder
-recursive-include emails_templates *
-
-# Include all Python files
-recursive-include emailsender *.py
-
-# Include any other necessary files (e.g., LICENSE, etc.)
 include LICENSE
+include requirements.txt
+include setup.py
+include CHANGELOG.md
+
+recursive-include django_email_sender *.py
+recursive-include docs *
+recursive-include locale *
+recursive-include tests *.py
+
+# Include any egg-info metadata
+recursive-include django_email_sender.egg-info *
+
+# Include all text and markdown files in the root
+include *.txt
+include *.md
+

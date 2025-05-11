@@ -1,0 +1,55 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-09 23:47+0100\n"
+"PO-Revision-Date: 2025-05-09 23:59+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Hindi <LL@li.org>\n"
+"Language: hi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\django_email_sender\translation.py:81a
+msgid "Setting language to {}"
+msgstr "{} भाषा में सेट किया जा रहा है"
+
+#: .\django_email_sender\validation.py:26
+msgid "Custom formatter must be a callable function."
+msgstr "कस्टम फ़ॉर्मेटर एक कॉल करने योग्य फ़ंक्शन होना चाहिए।"
+
+#: .\django_email_sender\validation.py:50
+msgid ""
+"Custom formatter must accept either one parameter (Exception) or two "
+"parameters (Exception, str)."
+msgstr "कस्टम फ़ॉर्मेटर को या तो एक पैरामीटर (Exception) या दो पैरामीटर (Exception, str) स्वीकार करने चाहिए।"
+
+#: .\django_email_sender\validation.py:55
+msgid "Custom formatter must return a string."
+msgstr "कस्टम फ़ॉर्मेटर को एक स्ट्रिंग वापस करनी चाहिए।"
+
+#: .\django_email_sender\validation.py:57
+#, python-brace-format
+msgid ""
+"\n"
+"                          Error while validating custom formatter: {e} \n"
+"                          Make sure your formatter accepts the correct "
+"arguments and returns a string.\n"
+"                        "
+msgstr ""
+"\n"
+"                          कस्टम फ़ॉर्मेटर को मान्य करते समय त्रुटि: {e} \n"
+"                          सुनिश्चित करें कि आपका फ़ॉर्मेटर सही तर्क स्वीकार करता है और एक स्ट्रिंग वापस करता है।\n"
+"                        "
+
+#: .\test_localisation.py:18
+msgid "The folder name must be a string or None"
+msgstr "फ़ोल्डर का नाम एक स्ट्रिंग या None होना चाहिए"
