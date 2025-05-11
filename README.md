@@ -1,5 +1,7 @@
+
 [![Downloads](https://static.pepy.tech/badge/django-email-sender)](https://pepy.tech/project/django-email-sender)
-[![PyPI Downloads](https://static.pepy.tech/badge/django-email-sender)](https://pepy.tech/projects/django-email-sender)
+[![PyPI version](https://badge.fury.io/py/django-email-sender.svg)](https://badge.fury.io/py/django-email-sender)
+
 # 📧 Django Email Sender Version 2
 
 Django Email Sender is a lightweight and highly customisable utility for sending emails in Django using rich templates and a clean, chainable API.
@@ -1045,7 +1047,6 @@ This method is cleaner, more readable, and less error-prone:
 
 ## Installation via Pypi
 
-[![PyPI Downloads](https://static.pepy.tech/badge/django-email-sender)](https://pepy.tech/projects/django-email-sender)
 
 django-email-sender is a Django package that allows you to send emails using customizable templates, with easy-to-use methods for setting the sender, recipients, subject, and context.
 
