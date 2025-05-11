@@ -1,4 +1,5 @@
-
+[![Downloads](https://static.pepy.tech/badge/django-email-sender)](https://pepy.tech/project/django-email-sender)
+[![PyPI version](https://badge.fury.io/py/django-email-sender.svg)](https://badge.fury.io/py/django-email-sender)
 
 # 📧 Django Email Sender Version 2
 
