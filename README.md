@@ -73,6 +73,7 @@ It provides a clean, reusable, and chainable utility class for sending emails in
 - [🧩 Requirements](#requirements)
 - [📝 Logger and Database Integration](#logger-and-database-integration)
 - [📝 How to configure the Logger](#how-to-configure-the-logger)
+- [🔑 Enabling the Logger](#enabling-the-logger)
 - [🛠️ Example Setting up a simple Logger with EmailSenderLogger](#example-setting-up-a-simple-logger-with-emailsenderlogger)
 - [🔁 Reuse the Logger and Formatter Across Multiple Emails](#reuse-the-logger-and-formatter-across-multiple-emails)
 - [🗣️ Turning on Verbose Mode](#turning-on-verbose-mode)
@@ -80,6 +81,7 @@ It provides a clean, reusable, and chainable utility class for sending emails in
 - [⚙️ Setting up an advanced logger](#setting-up-an-advanced-logger)
 - [🔄 Advanced Tip: Rotate Log Files Automatically](#advanced-tip-rotate-log-files-automatically)
 - [📈 Advanced Logger Usage](#advanced-logger-usage)
+- [📝 Sample Logging Report](#sample-logging-report)
 - [🗃️ Database Integration](#database-integration)
 - [📝🔒 Logger](#logger)
 - [🛠️ Setting up the logger ](#example-setting-up-a-logger-with-emailsender)
@@ -1257,6 +1259,46 @@ def my_custom_formatter(exception: Exception, trace: str) -> str:
 
 ---
 
+
+
+###  Enabling the Logger
+
+🔒 By default, even if you've configured your logger using methods such as `config_logger()` or ` **logging will not begin until you explicitly call** `start_logging_session()`.
+
+If you forget to call `start_logging_session()`, the system will inform you through repeated debug messages like the following:
+
+```text
+[2025-05-11 22:20:27,875] DEBUG    email_sender : [Logger Not Enabled: Logger is not enabled. Skipping logging. | category=LOGGER | status=NOT_ENABLED]
+[2025-05-11 22:20:27,875] DEBUG    email_sender : [Logger Not Enabled: Logger is not enabled. Skipping logging. | category=LOGGER | status=NOT_ENABLED]
+[2025-05-11 22:20:27,875] DEBUG    email_sender : [Logger Not Enabled: Logger is not enabled. Skipping logging. | category=LOGGER | status=NOT_ENABLED]
+[2025-05-11 22:20:27,875] DEBUG    email_sender : [Logger Not Enabled: Logger is not enabled. Skipping logging. | category=LOGGER | status=NOT_ENABLED]
+[2025-05-11 22:20:27,875] INFO     email_sender : [Setting language safely...]
+[2025-05-11 22:20:27,875] INFO     email_sender : [Django is ready, activating language.]
+````
+
+To fix this, ensure you call the following after your logger setup:
+
+```python
+email_logger.start_logging_session()
+```
+
+✅ **Tip:** You can stop the session anytime with `stop_logging_session()` or temporarily pause it with `pause_logging()` and `resume_logging()`.
+
+---
+
+### 🛠️ Troubleshooting Tip
+
+If your logs are not being recorded or saved even after calling `configure_logger()` and other setup methods, check that:
+
+* `start_logging_session()` has been called.
+* The logging level (e.g., `.to_info()`, `.to_debug()`) matches your application’s verbosity.
+* You have not paused logging with `pause_logging()` without calling `resume_logging()` afterward.
+* You are using a valid log model (if required), and `add_log_model()` was set up properly.
+
+> if you are still not seeing any logs? Look for `[Logger Not Enabled: Logger is not enabled. Skipping logging.]` messages — it means logging was configured but never started.
+
+
+
 [🔝 Back to top](#table-of-contents)
 
 
@@ -1845,6 +1887,43 @@ Key points
     - Allows you to an `end point` where it can then run up to
     - Does force you to use these advanced featues, you can just as easily set up with `config_logger` and let run or use no logger at all
     - It is easier for beginners to use and allows `advanced` users and more control to advanced user
+
+[🔝 Back to top](#table-of-contents)
+
+
+##  Sample Logging Report
+
+📄 Below is a **sample snippet** from the logging output generated when an email is processed using `EmailSenderLogger` with logging enabled.
+
+This report captures a comprehensive summary of the email sending process—including details like recipients, templates used, status, time taken, and previews of the message content. It's particularly useful for debugging, auditing, or tracking email delivery during development or production.
+
+```plaintext
+[2025-05-08 06:49:56,758] INFO     email_sender : [________________________________________________________________________
+[2025-05-08 06:49:56,758] INFO     email_sender : [                                                                        
+[2025-05-08 06:49:56,758] INFO     email_sender : [      '**Email Sent Process Summary Logs**']
+[2025-05-08 06:49:56,758] INFO     email_sender : [________________________________________________________________________
+[2025-05-08 06:49:56,758] INFO     email_sender : [Email ID                          : '8679bf20ada7055179feefc730305e28d8070b2844e74b6152b83a6aa3f3e205'
+[2025-05-08 06:49:56,759] INFO     email_sender : [Timestamp                         : 2025-05-08 05:49:56.757213+00:00
+[2025-05-08 06:49:56,759] INFO     email_sender : [Language code sent in             : en-us
+[2025-05-08 06:49:56,760] INFO     email_sender : [Subject                           : apple
+[2025-05-08 06:49:56,760] INFO     email_sender : [From                              : en@gmail.com
+[2025-05-08 06:49:56,760] INFO     email_sender : [To                                : peter@gmail.com
+[2025-05-08 06:49:56,760] INFO     email_sender : [Additional Recipients             : ['bin@example.com', 's@exmaple.com', 'jake@gmailcom', 'peter@gmail.com']
+[2025-05-08 06:49:56,761] INFO     email_sender : [Total Recipients                  : 5
+[2025-05-08 06:49:56,761] INFO     email_sender : [Template Used (HTML) full path    : C:\full\path\to\template\email_templates\emails_templates\sender\test_email.html
+[2025-05-08 06:49:56,762] INFO     email_sender : [Template Used (Text) full path    : C:\full\path\to\template\email_templates\test_email.txt
+[2025-05-08 06:49:56,763] INFO     email_sender : [HTML short file name              : test_email.html
+[2025-05-08 06:49:56,763] INFO     email_sender : [Text short file name              : test_email.txt
+[2025-05-08 06:49:56,763] INFO     email_sender : [Attachments Added                 : 'None'
+[2025-05-08 06:49:56,763] INFO     email_sender : [Environment                       : 'Development'
+[2025-05-08 06:49:56,765] INFO     email_sender : [Time Taken                        : 0.00 seconds
+[2025-05-08 06:49:56,766] INFO     email_sender : [Status                            : Failed to send email
+[2025-05-08 06:49:56,766] INFO     email_sender : [Emails delivered successfully     : 0
+[2025-05-08 06:49:56,766] INFO     email_sender : [Text Preview                      : hi, { username}  please verify your email by clicking this link { code }..
+[2025-05-08 06:49:56,767] INFO     email_sender : [HTML Preview                      : Verify Your Email Verify Your Email Address Hi { username }, Pleas...
+[2025-05-08 06:49:56,768] INFO     email_sender : [Email format                      : multipart/alternative (HTML + plain text)
+[2025-05-08 06:49:56,768] INFO     email_sender : [________________________________________________________________________
+```
 
 [🔝 Back to top](#table-of-contents)
 
