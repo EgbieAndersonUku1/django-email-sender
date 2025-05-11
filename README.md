@@ -1025,7 +1025,7 @@ This approach ensures consistency across your codebase and provides a single sou
 | `email_delivery_count`         | Property  | ❌         | Property that returns number of deliveries       | `EmailSenderLogger`  |
 | `email_meta_data`              | Property  | ❌         | Returns metadata of sent email                   | `EmailSenderLogger`  |
 | `payload`                      | Property  | ❌         | Property returning the full internal state       | `EmailSenderLogger`  |
-| `return_successful_payload()`  | Property  | ❌         | Returns a copy of the payload (audit fields)     | `EmailSenderLogger`  |
+| `return_successful_payload()`  | Method  | ❌         | Returns a copy of the payload (audit fields)     | `EmailSenderLogger`  |
 
 ---
 
