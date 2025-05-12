@@ -1,8 +1,4 @@
 
-[![Downloads](https://static.pepy.tech/badge/django-email-sender)](https://pepy.tech/project/django-email-sender)
-[![PyPI version](https://img.shields.io/pypi/v/django-email-sender/2.0.4.svg?color=blue)](https://pypi.org/project/django-email-sender/2.0.0/)
-
-
 # 📧 Django Email Sender Version 2
 
 Django Email Sender is a lightweight and highly customisable utility for sending emails in Django using rich templates and a clean, chainable API.
@@ -1293,7 +1289,7 @@ To fix this, ensure you call the following after your logger setup:
 
 ### 🛠️ Troubleshooting Tip
 
-If your logs are not being recorded or saved even after calling `configure_logger()` and other setup methods, check that:
+If your logs are not being recorded or saved even after calling `config_logger()` and other setup methods, check that:
 
 * `start_logging_session()` has been called.
 * The logging level (e.g., `.to_info()`, `.to_debug()`) matches your application’s verbosity.
@@ -1886,12 +1882,17 @@ email_sender = (
 
 ---
 
-Key points
+**Key points**
+    
     - Provides advanced way to log or monitor or your data
-    - Allows you set log points between two methods e.g two fields
+
+    - Allows you to log or exclude fields 
+
     - Allows you to an `end point` where it can then run up to
-    - Does force you to use these advanced featues, you can just as easily set up with `config_logger` and let run or use no logger at all
-    - It is easier for beginners to use and allows `advanced` users and more control to advanced user
+    
+    - Does not force you to use these advanced featues, you can just as easily set up with `config_logger` and let run or use no logger at all
+    
+    - It is easier for beginners to use and allows `advanced` users more control over their logging
 
 [🔝 Back to top](#table-of-contents)
 
@@ -2035,8 +2036,8 @@ print(payload)
 #   "from_email": "admin@example.com",
 #   "to_email": ["user@example.com"],
 #   "subject": "Welcome to Our Platform",
-#   "body_html": "<h1>Welcome!</h1>",
-#   "body_text": "Welcome!",
+#   "body_html": "full/path/to/html/template/",
+#   "body_text": "full/path/to/text/template/",
 #   "context": {"username": "john_doe"},
 #   "headers": {"X-Custom-Header": "value"}
 

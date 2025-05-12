@@ -270,7 +270,7 @@ class FieldMessages(BaseFormatter):
     FIELDS_MISSING             : str = _("An error was raised because some or all of the fields were not set. | category=FIELDS | status=MISSING_FIELDS")
     LOG_BETWEEN_FIELDS         : str = _("Field '{field_one}' to '{field_two}'. | category=FIELDS | status=FIELD_LOG")
     RECIPIENT_FIELD_ADDED_MSG  : str = _("A new email with the value '{value}' was added to the recipient list. | category=FIELDS | status=NEW_ENTRY")
-    FIELD_HAS_BEEN_CLEARED     : str = _("Field '{field}' field has been cleared. Field is now {value}. | category=FIELDS | status=CLEARED")
+    FIELD_HAS_BEEN_CLEARED     : str = _("Field '{field}' field has been 'cleared'. Field previous value was '{previous_value}', now after clearing the current value is '{value}'. | category=FIELDS | status=CLEARED")
     FIELD_CLEARING_REQUEST     : str = _("Field '{field}' field has been requested to be cleared. | category=FIELDS | status=REQUEST_CLEARING")
 
     def __str__(self) -> str:

@@ -613,11 +613,12 @@ class EmailSenderLogger:
         fields for logging and metadata, can still access the necessary data 
         even after the original fields are reset.
         """
+        
         if kwargs.get("auto_reset"):
             self._fields_marked_for_reset = True
 
             # Snapshot the current state of the email sender
-            payload_data = {
+        payload_data = {
                 "from_email": self._email_sender.from_email,
                 "to_email": self._email_sender.to_email,
                 "subject": self._email_sender.subject,
@@ -628,12 +629,9 @@ class EmailSenderLogger:
             }
 
             # Use static data to construct the payload
-            self._email_payload = EmailPayload(**payload_data)
-        else:
-            self._email_payload = self.payload
-
-            
-            
+        self._email_payload = EmailPayload(**payload_data)
+      
+                        
     def _log_email_preparation_details(self, recipients: list[str]) -> None:
         """
         Logs detailed information about the email setup before it is sent.
@@ -1433,9 +1431,9 @@ class EmailSenderLogger:
             self: The current instance, allowing for method chaining.
         """
         self._log_debug_trace_format()
-        email = EmailSenderConstants.Fields.FROM_EMAIL.value
-        self._email_sender.clear_from_email()
-        self._log_field_cleared_message(email, self._email_sender.from_email)
+        self._clear_and_log_field(field_name=EmailSenderConstants.Fields.FROM_EMAIL.value,
+                                  current_value=self._email_sender.from_email
+                                  )
         return self
 
     def clear_to_email(self):
@@ -1449,9 +1447,9 @@ class EmailSenderLogger:
             self: The current instance, allowing for method chaining.
         """
         self._log_debug_trace_format()
-        recipient = EmailSenderConstants.Fields.TO_EMAIL.value
-        self._email_sender.clear_to_email()
-        self._log_field_cleared_message(recipient, self._email_sender.to_email)
+        self._clear_and_log_field(field_name=EmailSenderConstants.Fields.TO_EMAIL.value,
+                                  current_value=self._email_sender.to_email
+                                  )
         return self
 
     def clear_subject(self):
@@ -1465,9 +1463,9 @@ class EmailSenderLogger:
             self: The current instance, allowing for method chaining.
         """
         self._log_debug_trace_format()
-        subject = EmailSenderConstants.Fields.SUBJECT.value
-        self._email_sender.clear_subject()
-        self._log_field_cleared_message(subject, self._email_sender.subject)
+        self._clear_and_log_field(field_name=EmailSenderConstants.Fields.SUBJECT.value,
+                                  current_value=self._email_sender.subject
+                                  )
         return self
 
     def clear_context(self):
@@ -1481,9 +1479,9 @@ class EmailSenderLogger:
             self: The current instance, allowing for method chaining.
         """
         self._log_debug_trace_format()
-        context = EmailSenderConstants.Fields.CONTEXT.value
-        self._email_sender.clear_context()
-        self._log_field_cleared_message(context, value=self._email_sender.context)
+        self._clear_and_log_field(field_name=EmailSenderConstants.Fields.CONTEXT.value,
+                                  current_value=self._email_sender.context
+                                  )
         return self
 
     def clear_text_template(self):
@@ -1496,10 +1494,10 @@ class EmailSenderLogger:
         Returns:
             self: The current instance, allowing for method chaining.
         """
-        self._log_debug_trace_format()
-        text_template = EmailSenderConstants.Fields.TEXT_TEMPLATE.value
-        self._email_sender.clear_text_template()
-        self._log_field_cleared_message(text_template, value=self._email_sender.text_template)
+        self._log_debug_trace_format()    
+        self._clear_and_log_field(field_name=EmailSenderConstants.Fields.TEXT_TEMPLATE.value,
+                                  current_value=self._email_sender.text_template
+                                  )
         return self
 
     def clear_html_template(self):
@@ -1513,9 +1511,9 @@ class EmailSenderLogger:
             self: The current instance, allowing for method chaining.
         """
         self._log_debug_trace_format()
-        html_template = EmailSenderConstants.Fields.HTML_TEMPLATE.value
-        self._email_sender.clear_html_template()
-        self._log_field_cleared_message(html_template, value=self._email_sender.html_template)
+        self._clear_and_log_field(field_name=EmailSenderConstants.Fields.HTML_TEMPLATE.value, 
+                                  current_value=self._email_sender.html_template
+                                  )
         return self
     
     def clear_all_fields(self):
@@ -1537,6 +1535,75 @@ class EmailSenderLogger:
         self._log_field_cleared_message(ALL_FIELDS, None)
         return self
 
+    def _clear_and_log_field(self, field_name: str, current_value: str) -> None:
+        """
+        Clears the specified email field and logs the action.
+
+        This method receives the name of an email field (e.g., "subject", "context") and its
+        current value. It clears the corresponding field from the email sender and logs the 
+        field name, the previous value, and the new (cleared) value.
+
+        Args:
+            field_name (str): The name of the field to clear.
+            current_value (str): The current value before the field is cleared.
+        Returns:
+            None
+        """
+        self._log_debug_trace_format()
+        
+        match field_name:
+            
+            case EmailSenderConstants.Fields.FROM_EMAIL.value:
+                self._email_sender.clear_from_email()
+                self._log_field_cleared_message(field_name, 
+                                                previous_value = current_value,
+                                                current_value  = self._email_sender.from_email
+                                                )
+                return
+            
+            case EmailSenderConstants.Fields.TO_EMAIL.value:
+                self._email_sender.clear_to_email()
+                self._log_field_cleared_message(field_name,
+                                                previous_value = current_value,
+                                                current_value  = self._email_sender.to_email
+                                                )
+                return
+            
+            case EmailSenderConstants.Fields.SUBJECT.value:
+                self._email_sender.clear_subject()
+                self._log_field_cleared_message(field_name, 
+                                                previous_value = current_value,
+                                                current_value  = self._email_sender.subject)
+                return
+            
+            case EmailSenderConstants.Fields.CONTEXT.value:
+                self._email_sender.clear_context()
+                self._log_field_cleared_message(field_name, 
+                                                previous_value=current_value,
+                                                current_value=self._email_sender.context)
+                return
+
+            case EmailSenderConstants.Fields.HTML_TEMPLATE.value:
+                self._email_sender.clear_html_template()
+                self._log_field_cleared_message(field_name, 
+                                                previous_value=current_value,
+                                                current_value=self._email_sender.html_template)
+                return
+            
+            case EmailSenderConstants.Fields.TEXT_TEMPLATE.value:
+                self._email_sender.clear_text_template()
+                self._log_field_cleared_message(field_name, 
+                                                previous_value=current_value, 
+                                                current_value=self._email_sender.text_template)
+                return
+            
+            case _:
+                self._log_message(FieldMessages.FIELD_VALIDATION_FAILED,
+                                  LoggerType.WARNING, 
+                                  field=field_name,
+                                  reason=ConfigMessages.MISSING_CONFIG
+                                  )
+            
     def _update_email_delivery_count(self, email_delivery_count: int) -> None:
         """
         Updates the email delivery count.
@@ -1564,7 +1631,7 @@ class EmailSenderLogger:
         if email_delivery_count > 0:
             self._email_delivery_count += email_delivery_count
 
-    def _log_field_cleared_message(self, field_name: str, value: str):
+    def _log_field_cleared_message(self, field_name: str, previous_value: str = None, current_value: str = None):
         """
         Logs a message indicating that a specific field has been cleared.
 
@@ -1577,7 +1644,10 @@ class EmailSenderLogger:
         """
         self._log_debug_trace_format()
         self._log_debug_verbose(FieldMessages.FIELD_CLEARING_REQUEST, field=field_name) 
-        self._log_message(FieldMessages.FIELD_HAS_BEEN_CLEARED, field=field_name, value=value)
+        self._log_message(FieldMessages.FIELD_HAS_BEEN_CLEARED, 
+                          field=field_name,
+                          previous_value = previous_value, 
+                          value = current_value)
 
     def _log_debug_trace_format(self, depth_trace=2):
         """
@@ -1767,10 +1837,12 @@ class EmailSenderLogger:
                 context=self._email_sender.context,
                 headers=self._email_sender.headers
             )
-
+            self._email_payload = email_payload
+            
+    
         if not email_payload.is_valid():
             raise InvalidPayload(EmailMessages.ERROR_OCCURED)
-
+       
         return email_payload.to_json()
 
     def _log_message(self, msg: str, logger_type: str = LoggerType.INFO, exc: Exception = None, *args, **kwargs) -> None:
@@ -1799,14 +1871,12 @@ class EmailSenderLogger:
 
         if not isinstance(logger_type, (LoggerType, str)): 
             return
-
-        formatted_msg = translate_message(msg, *args, **kwargs)
         
         if exc is not None:
-            formatted_msg = self._add_traceback(exc, msg)
+            msg = self._add_traceback(exc, msg)
     
         if self._logging_enabled:
-            self._dispatch__log_message(formatted_msg, logger_type, *args, **kwargs)
+            self._dispatch__log_message(msg, logger_type, *args, **kwargs)
 
     def _add_traceback(self, exc: Exception, msg: str) -> str:
         """
@@ -2216,7 +2286,7 @@ class EmailSenderLogger:
             self: Enables method chaining for fluent API usage.
 
         Example:
-            exclude_fields_from_logging(EmailSenderConstants.Field.Subject.value, 
+            logger.exclude_fields_from_logging(EmailSenderConstants.Field.Subject.value, 
                                               EmailSenderConstants.Fields.TO_EMAIL.value)
         """
         self._enable_field_trace_logging = False
@@ -2235,7 +2305,7 @@ class EmailSenderLogger:
             self: Enables method chaining for fluent API usage.
 
         Example:
-            reset_field_logging_filters()
+            logger.reset_field_logging_filters()
         """
         self._enable_field_trace_logging   = False
         self._enable_exclusion_field_trace = False

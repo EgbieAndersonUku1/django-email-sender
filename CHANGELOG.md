@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+
+
+## [2.0.5]
+
+### Changed
+- Updated `FIELD_HAS_BEEN_CLEARED` string for clarity and correctness.
+  - Now logs:  
+    _"Field 'from_email' has been cleared. Its previous value was 'johnnys3011@gmail.com', and the current value is now 'None'."_
+- Refactored logic to move individual field-clearing calls into a unified method:
+  - `clear_<field>()` logic is now handled by `self._clear_and_log_field(field_name, current_value)`
+- `_log_field_cleared_message()` which is called by `self._clear_and_log_field(field_name, current_value)` now accepts both `previous_value` and `current_value`.
+
+
+### Fixed
+- Resolved a bug where calling `send()` without setting `auto_reset=True` would caused a runtime error.
+
 ## [2.0.3] Minor update to readme.md
  - Updated readme.md stating that list only works for `EmailSender` but will fail if used with `EmailSenderLogger`
 
