@@ -172,7 +172,7 @@ class EmailSender:
         if not recipient:
             return self
         
-        if isinstance(recipient, list) and len(recipient):
+        if isinstance(recipient, list) and recipient:
             self.to_email = recipient[0]
         else:
             self.to_email = recipient

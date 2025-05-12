@@ -1,6 +1,6 @@
 
 [![Downloads](https://static.pepy.tech/badge/django-email-sender)](https://pepy.tech/project/django-email-sender)
-[![PyPI version](https://img.shields.io/pypi/v/django-email-sender/2.0.0.svg?color=blue)](https://pypi.org/project/django-email-sender/2.0.0/)
+[![PyPI version](https://img.shields.io/pypi/v/django-email-sender/2.0.4.svg?color=blue)](https://pypi.org/project/django-email-sender/2.0.0/)
 
 
 # 📧 Django Email Sender Version 2
@@ -499,9 +499,12 @@ Method Description
 ```
 
 > **Note**  
-> The `.to(...)` method accepts either a single email string or a list of emails.  
-> However, the list form is supported **only for backwards compatibility**.  
+> The `.to(...)` method accepts either a single email string or a list of email addresses.  
+> However, the list format is supported **only for backwards compatibility**.  
 > If you pass a list like `["first_email@example.com", "second_email@example.com"]`, **only the first email (`"first_email@example.com"`) will be used**.  
+>  
+> ⚠️ **Important:** Passing a list only works when using `EmailSender`.  
+> If you're using `EmailSenderLogger`, passing a list will raise an error. In that case, always pass a single string email address to `.to(...)`.
 >
 > To add multiple recipients, use the `.add_new_recipient()` method instead.  
 >
@@ -1344,7 +1347,7 @@ email_sender = EmailSenderLogger.create().config_logger(
 # Example 1 - Send email 1
 (
     email_sender.from_address("no-reply@example.com")
-        .to(["test@example.com"])
+        .to("test@example.com")
         .with_subject("Verify Your Email")
         .with_context({"username": "John", "verification_code": "123456"})
         .with_html_template("verification.html", folder_name="verification")
@@ -1356,7 +1359,7 @@ email_sender = EmailSenderLogger.create().config_logger(
 # auto_reset is not set to true, default of False is used
 (
     email_sender.from_address("no-reply@example.com")
-        .to(["test@example.com"])
+        .to("test@example.com")
         .with_subject("Welcome Email")
         .with_html_template("welcome.html", folder_name="welcome")
         .with_text_template("welcome.txt", folder_name="welcome")
@@ -1370,7 +1373,7 @@ email_sender = EmailSenderLogger.create().config_logger(
 # To avoid this issue, you should either manually clear the fields or use `auto_reset=True` to ensure a clean state.
 (
     email_sender.from_address("no-reply@example.com")
-        .to(["test@example.com"])
+        .to("test@example.com")
         .with_subject("Meetup Information time and location")
         .send(auto_reset=True)  # ensure a clean state
 )
@@ -1816,7 +1819,7 @@ logger = logging.getLogger("email_sender")
     EmailSenderLogger.create()
         .config_logger(logger, LoggerType.DEBUG)
         .from_address("no-reply@example.com")
-        .to(["jtest@example.com"])
+        .to("jtest@example.com")
         .config_logger(logger, LoggerType.INFO)
         .with_subject("test")
         .config_logger(logger, LoggerType.WARNING)
@@ -2143,7 +2146,7 @@ EmailSender.create()
 ### Explanation:
 
 - `.from_address("no-reply@example.com")`: Specifies the sender's email address.
-- `.to(["recipient@example.com"])`       : Specifies the recipient's email address.
+- `.to("recipient@example.com")`         : Specifies the recipient's email address.
 - `.with_subject("Welcome!")`            : The subject of the email.
 - `.with_context({"username": "John"})`  : Context for the email templates, allowing dynamic insertion of values (e.g., the recipient's name).
 - `.with_text_template("welcome.txt", folder_name="emails")`: The path to the text-based email template. Here, we specify the folder name (`emails`) where the template is stored. If no folder name is provided, it defaults to `email_templates/`.

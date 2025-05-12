@@ -15,4 +15,4 @@ recursive-include django_email_sender.egg-info *
 # Include all text and markdown files in the root
 include *.txt
 include *.md
-
+include CHANGELOG.md

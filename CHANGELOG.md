@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.3] Minor update to readme.md
+ - Updated readme.md stating that list only works for `EmailSender` but will fail if used with `EmailSenderLogger`
 
 ## [2.0.3] Minor change to maintain backwards compatibility
 
