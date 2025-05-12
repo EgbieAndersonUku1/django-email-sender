@@ -7,7 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+
+## [2.0.3] Minor change to maintain backwards compatibility
+
+### Added checks to the `to` method to improve clarity and maintain backward compatibility
+
+- Accepts a single email address or a list of addresses
+- Uses only the first item in a list if provided
+- Adds detailed docstring explaining expected usage
+- Notes that `.add_new_recipient()` should be used for multiple recipients
+
+#### Why?
+
+The method was originally designed to accept both lists and strings. In version 2, it was changed to accept only strings, which caused backward compatibility issues when passing a list. This update ensures that passing a list won't break compatibility, though only the first email in the list will be used for the `to_email`.
+
+### Add multiple recipients
+To send to multiple recipients use the method `add_new_recipient(...)
+
+
 ## [2.0.0] - 2025-05-11
+
 
 ### Public API
 
