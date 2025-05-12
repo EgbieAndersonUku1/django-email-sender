@@ -2216,7 +2216,7 @@ class EmailSenderLogger:
             self: Enables method chaining for fluent API usage.
 
         Example:
-            logger.exclude_fields_from_logging(EmailSenderConstants.Field.Subject.value, 
+            exclude_fields_from_logging(EmailSenderConstants.Field.Subject.value, 
                                               EmailSenderConstants.Fields.TO_EMAIL.value)
         """
         self._enable_field_trace_logging = False
@@ -2235,7 +2235,7 @@ class EmailSenderLogger:
             self: Enables method chaining for fluent API usage.
 
         Example:
-            logger.reset_field_logging_filters()
+            reset_field_logging_filters()
         """
         self._enable_field_trace_logging   = False
         self._enable_exclusion_field_trace = False

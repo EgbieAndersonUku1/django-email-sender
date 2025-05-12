@@ -83,8 +83,6 @@ It provides a clean, reusable, and chainable utility class for sending emails in
 - [📈 Advanced Logger Usage](#advanced-logger-usage)
 - [📝 Sample Logging Report](#sample-logging-report)
 - [🗃️ Database Integration](#database-integration)
-- [📝🔒 Logger](#logger)
-- [🛠️ Setting up the logger ](#example-setting-up-a-logger-with-emailsender)
 - [🛠️ Setting up an advanced logger](#setting-up-an-advanced-logger)
 - [📝 Reuse the Logger and Formatter Across Multiple Emails](#reuse-the-logger-and-formatter-across-multiple-emails)
 - [🔄 Resetting or Reusing the Instance Cleanly](#resetting-or-reusing-the-instance-cleanly)
@@ -425,7 +423,7 @@ That’s completely fine. If you don’t require logging or database integration
 However, `EmailSenderLogger` is a subclass of `EmailSender`, meaning it fully supports all core email-sending features. If you prefer to use `EmailSenderLogger` (e.g., for future extensibility), simply initialise it with an instance of `EmailSender`.
 
 ```python
-logger = EmailSenderLogger.create().add_email_sender_instance(EmailSender.create() or EmailSender())
+EmailSenderLogger.create().add_email_sender_instance(EmailSender.create() or EmailSender())
 ```
 
 Unless you explicitly opt-in to the enhanced features (e.g., by starting a logging session), `EmailSenderLogger` behaves just like `EmailSender`.
@@ -479,6 +477,37 @@ Method Description
 > **Sets the recipient(s) of the email**.  
 > `recipients`: A string or list of strings with one or more email addresses.
 
+
+> New in version 2, no longer accepts a list. Use `.add_new_recipient()` to add multiple recipients
+```python
+    from django_email_sender.email_sender import EmailSender
+
+    # instantialize the Email sender
+    email_sender = EmailSender.create()
+
+    email_sender.from_address(from_email)
+                .to(user.email)  
+                    .with_subject(subject)
+                    .with_context({"username": 'John'})
+                    .with_text_template(text_registration_path, folder_name="emails")
+                    .with_html_template(html_registration_path, folder_name="emails")
+                    .send()
+                    .clear_subject() # Clears the subject field from the chain
+
+   # or it can be cleared directly from the instant method
+   email_sender.clear_subject()
+```
+
+> **Note**  
+> The `.to(...)` method accepts either a single email string or a list of emails.  
+> However, the list form is supported **only for backwards compatibility**.  
+> If you pass a list like `["first_email@example.com", "second_email@example.com"]`, **only the first email (`"first_email@example.com"`) will be used**.  
+>
+> To add multiple recipients, use the `.add_new_recipient()` method instead.  
+>
+> ⚠️ Do **not** use `.to(...)` to add multiple emails — it will **overwrite** the `to_email` field rather than append to it.
+
+
 #### 📝 `with_subject(subject)`
 > **Sets the subject line of the email**.  
 > `subject`: A string for the email's subject.
@@ -502,24 +531,6 @@ Method Description
 #### ✂️ `clear_subject()`
 > Clears the subject field to its default empty value. This method is optional and can be called as part of a method chain.  It's only relevant if the object has been instantiated and used as a chain. Calling this method clears the subject field without affecting other fields in the chain.
 
-```python
-    from django_email_sender.email_sender import EmailSender
-
-    # instantialize the Email sender
-    email_sender = EmailSender.create()
-
-    email_sender.from_address(from_email)
-                .to([user.email])
-                    .with_subject(subject)
-                    .with_context({"username": 'John'})
-                    .with_text_template(text_registration_path, folder_name="emails")
-                    .with_html_template(html_registration_path, folder_name="emails")
-                    .send()
-                    .clear_subject() # Clears the subject field from the chain
-
-   # or it can be cleared directly from the instant method
-   email_sender.clear_subject()
-```
 
 #### 🧳 `clear_context()`
 **New in version 2.** 
@@ -532,7 +543,7 @@ Method Description
     email_sender = EmailSender.create()
 
     email_sender.from_address(from_email)
-                .to([user.email])
+                .to(user.email)
                     .with_subject(subject)
                     .with_context({"username": 'John'})
                     .with_text_template(text_registration_path, folder_name="emails")
@@ -555,7 +566,7 @@ Method Description
     email_sender = EmailSender.create()
 
     email_sender.from_address(from_email)
-                .to([user.email])
+                .to(user.email)
                     .with_subject(subject)
                     .with_context({"username": 'John'})
                     .with_text_template(text_registration_path, folder_name="emails")
@@ -579,7 +590,7 @@ Method Description
     email_sender = EmailSender.create()
 
     email_sender.from_address(from_email)
-                .to([user.email])
+                .to(user.email)
                     .with_subject(subject)
                     .with_context({"username": 'John'})
                     .with_text_template(text_registration_path, folder_name="emails")
@@ -604,7 +615,7 @@ Method Description
     email_sender = EmailSender.create()
 
     email_sender.from_address(from_email)
-                .to([user.email])
+                .to(user.email)
                     .with_subject(subject)
                     .with_context({"username": 'John'})
                     .with_text_template(text_registration_path, folder_name="emails")
@@ -629,7 +640,7 @@ Method Description
     email_sender = EmailSender.create()
 
     email_sender.from_address(from_email)
-                .to([user.email])
+                .to(user.email)
                     .with_subject(subject)
                     .with_context({"username": 'John'})
                     .with_text_template(text_registration_path, folder_name="emails")
@@ -656,7 +667,7 @@ Method Description
             
         EmailSender.create()
         email_sender.from_address(from_email)
-                    .to([user.email])
+                    .to(user.email)
                         .with_subject(subject)
                         .with_context({"username": 'John'})
                         .with_text_template(text_registration_path, folder_name="emails")
@@ -941,22 +952,6 @@ email_sender_with_logging.exclude_fields_from_logging(
 
 ```
 
-
-📩 Non-logging use (with EmailSender)
-```python
-
-from django_email_sender.email_sender_constants import EmailSenderConstants
-
-email_sender = EmailSender.create()
-email_sender.send(
-    auto_reset=True,
-    preserve_fields=[
-        EmailSenderConstants.Fields.CONTEXT.value,
-        EmailSenderConstants.Fields.SUBJECT.value
-    ]
-)
-
-```
 This approach ensures consistency across your codebase and provides a single source of truth for all field and method references related to EmailSender and EmailSenderLogger.= "add_new_recipient"
 
 
@@ -1058,6 +1053,9 @@ When chaining multiple methods, breaking the chain onto separate lines can cause
 This works but can become harder to read as the chain grows:
 
 ```python
+
+# Assume that you passed in a user class
+
 EmailSender.create()\
     .from_address(from_email)\
     .to([user.email])\
@@ -1073,6 +1071,9 @@ EmailSender.create()\
 This method is cleaner, more readable, and less error-prone:
 
 ```python
+
+   
+   # Assume that you passed in a user class
 
     EmailSender.create()
     .from_address(from_email)
@@ -1237,6 +1238,7 @@ def my_custom_formatter(exception: Exception, trace: str) -> str:
          .enable_verbose()
          .config_logger(logger, LoggerType.DEBUG) # logger added
          .add_email_sender_instance(EmailSender.create())
+         .set_custom_formatter(my_custom_formatter) # only use this option when you are passing in an optional custom formatter
          .from_address("no-reply@example.com")
          .to("no-reply@example.com")
          .with_subject("test subject")
@@ -1253,7 +1255,7 @@ def my_custom_formatter(exception: Exception, trace: str) -> str:
 | Step | What |
 | :-- | :-- |
 | **1** | We create a simple logger using Python’s built-in `logging` module. |
-| **2** | (Optional) We define a `custom_formatter` for formatting error messages. |
+| **2** | (Optional) We define a `custom_formatter` for formatting error messages. If defined set it using `set_custom_formatter` |
 | **3** | We chain `set_logger()` with other `EmailSender` methods like `to(...)`, `with_subject(...)`, `with_context(...)`, and finally `send()`. |
 
 
@@ -1263,7 +1265,7 @@ def my_custom_formatter(exception: Exception, trace: str) -> str:
 
 ###  Enabling the Logger
 
-🔒 By default, even if you've configured your logger using methods such as `config_logger()` or ` **logging will not begin until you explicitly call** `start_logging_session()`.
+🔒 By default, even if you've configured your logger using methods such as `config_logger()` or ` **logging will not begin until you explicitly call** `start_logging_session()`. This ensures that there is no accidental logging unless you want to log.
 
 If you forget to call `start_logging_session()`, the system will inform you through repeated debug messages like the following:
 
@@ -1279,7 +1281,7 @@ If you forget to call `start_logging_session()`, the system will inform you thro
 To fix this, ensure you call the following after your logger setup:
 
 ```python
-email_logger.start_logging_session()
+.start_logging_session() 
 ```
 
 ✅ **Tip:** You can stop the session anytime with `stop_logging_session()` or temporarily pause it with `pause_logging()` and `resume_logging()`.
@@ -1293,7 +1295,7 @@ If your logs are not being recorded or saved even after calling `configure_logge
 * `start_logging_session()` has been called.
 * The logging level (e.g., `.to_info()`, `.to_debug()`) matches your application’s verbosity.
 * You have not paused logging with `pause_logging()` without calling `resume_logging()` afterward.
-* You are using a valid log model (if required), and `add_log_model()` was set up properly.
+* You are using a valid log model (if required), and `add_log_model()` is set up properly if you want to log to the `database` .
 
 > if you are still not seeing any logs? Look for `[Logger Not Enabled: Logger is not enabled. Skipping logging.]` messages — it means logging was configured but never started.
 

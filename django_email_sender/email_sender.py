@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from django.utils.translation import gettext_lazy as _
-from typing import Optional, Dict
+from typing import List, Optional, Dict, Union
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from pathlib import Path
@@ -148,14 +148,23 @@ class EmailSender:
         self.from_email = email
         return self
 
-    def to(self, recipient: str) -> "EmailSender":
+    def to(self, recipient:  Optional[Union[str, List[str]]]) -> "EmailSender":
         """
         Set the recipient(s) of the email.
 
-        sets a single recipient to the recipient field
+        sets a single recipient to the recipient field. 
 
         Args:
             recipients (Union[str, List[str]]): A single email address or a list of email addresses.
+            Note:
+              The list has been left to maintain backwards compatibility. If you add a list
+              of emails e.g ["first_email@example.com", "second_email@example.com"] only the
+              first email will be used "first_email@example.com".
+              
+              If you want to add multiple emails use the `.add_new_recipient()` method.
+              
+              Do not call the method `.to(...)` to add multiple emails because it will only change
+              the `to_email` not add to it.
 
         Returns:
             EmailSender: The current instance for chaining.
@@ -163,7 +172,10 @@ class EmailSender:
         if not recipient:
             return self
         
-        self.to_email = recipient
+        if isinstance(recipient, list) and len(recipient):
+            self.to_email = recipient[0]
+        else:
+            self.to_email = recipient
         return self
 
     def with_subject(self, subject: str) -> "EmailSender":
