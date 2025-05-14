@@ -31,7 +31,7 @@ class EmailSenderSendTest(TestCase):
     @patch("django_email_sender.email_sender.render_to_string")
     def test_send(self, mock_render_string):
         
-        TEXT_CONTENT = "text_content
+        TEXT_CONTENT = "text_content"
         HTML_CONTENT = "html_content"
         
         mock_render_string.side_effect = [
