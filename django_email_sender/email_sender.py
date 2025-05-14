@@ -390,6 +390,11 @@ class EmailSender:
         self.text_template = None
         return self
 
+    def clear_headers(self) -> "EmailSender":
+        """Clear the headers"""
+        self.headers = {}
+        return self
+    
     def clear_all_fields(self)  -> "EmailSender":
         """Clear all the fields"""
 
