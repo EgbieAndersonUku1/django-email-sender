@@ -1681,13 +1681,8 @@ class EmailSenderLogger:
         debug_info = mark_method_for_debugging(depth=depth_trace)
 
         if debug_info and self._debug_verbose:
-            self._log_message(
-                DebugMessages.format_message(
-                    DebugMessages.format_message(
-                        DebugMessages.VERBOSE_TRACE_ENTERED, depth_level=depth_trace
-                    )
-                )
-            )
+            self._log_message(DebugMessages.VERBOSE_TRACE_ENTERED, depth_level=depth_trace)
+                
             self._log_message(
                 DebugMessages.VERBOSE_TRACE,
                 LoggerType.DEBUG,
