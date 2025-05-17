@@ -1,0 +1,7 @@
+/* Subtle color and bolder weight for main headings */
+h1, h2 {
+    color: #1e90ff;       
+    font-weight: 700;     
+    margin-top: 1.5em;   
+    margin-bottom: 0.5em; 
+}

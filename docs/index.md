@@ -1,7 +1,3 @@
-[![Downloads](https://static.pepy.tech/badge/django-email-sender)](https://pepy.tech/project/django-email-sender)
-[![PyPI version](https://img.shields.io/pypi/v/django-email-sender/2.0.5.svg?color=blue)](https://pypi.org/project/django-email-sender/2.0.0/)
-
-
 # 📧 Django Email Sender Version 2
 
 Django Email Sender is a lightweight and highly customisable utility for sending emails in Django using rich templates and a clean, chainable API.
@@ -34,13 +30,12 @@ Version 2.0 brings powerful new features that make your email workflows smarter 
 - Custom function to format your logging
 - Additional methods for fine grain control (v2.0+)
 - Logging and database integration (v2.0+)  
-- i18n support (v2.0+)
 
 ---
 
 ## 🧾 Changelog
 
-### v2.0
+#### v2.0
 
 - Added support for logging (file/database)  
 - Added delivery status tracking with error feedback  
@@ -106,11 +101,11 @@ While Django already provides a way to send emails, it can become verbose and re
 [🔝 Back to top](#table-of-contents)
 
 
-## Upgrading from Version 1
+#### Upgrading from Version 1
 
 Version 2 introduces powerful new features — with **zero breaking changes**. Your current integration will continue to work as expected!
 
-### What is New in Version 2:
+#### What is New in Version 2:
 
 - ✅ **Integrated Logging & Database Support**  
   Log email activity to a file or database with customisable logging levels (`debug`, `info`, `warning`, `error`).
@@ -129,11 +124,11 @@ Version 2 introduces powerful new features — with **zero breaking changes**. Y
 - 🧠 **Smarter Error Handling**  
   Now with field-level and error messages for easier debugging and localisation.
 
----
-
 **✅ No breaking changes** — Drop-in upgrade, full backwards compatibility.
 
-## 📦 What’s New in Version 2 cont'd?
+---
+
+#### 📦 What’s New in Version 2 cont'd?
 
 Version 2 of Django Email Sender brings major upgrades while maintaining full backwards compatibility. It’s smarter, more flexible, and much more powerful.
 
@@ -202,14 +197,9 @@ Version 2 of Django Email Sender brings major upgrades while maintaining full ba
   Designed with testability in mind, making it easy to write unit and integration tests.
 
 
+## Sample code comparision
 
-
-[🔝 Back to top](#table-of-contents)
-
----
-
-
-### Sample Code Comparison: Version 1 vs Version 2
+##### Sample Code Comparison: Version 1 vs Version 2
 
 **Version 1 (Classic Usage)**
 
@@ -230,11 +220,10 @@ from django_email_sender.email_sender import EmailSender
 
 ```
 
-### 🚀 Version 2 — Demo: Custom Logger & Database Logging
-```python
-## 
+##### 🚀 Version 2 — Demo: Custom Logger & Database Logging
 
 ```python
+
 import logging
 
 from django_email_sender.email_sender import EmailSender
@@ -310,7 +299,7 @@ meta_data = email_sender.email_meta_data
 This is just a basic example — additional configuration options like preserve_fields, auto_reset, clear_*() methods, etc. See the documentation for details
 
 
-### 📝 Minimal Example — Custom Logger Only (No DB Integration)
+##### 📝 Minimal Example — Custom Logger Only (No DB Integration)
 
  A minimal example that shows off just the custom logging integration without the database part. This is great for users who want to plug in a logger quickly without setting up a database model.
 
@@ -413,7 +402,6 @@ email_sender = (
 ```
 ---
 
-[🔝 Back to top](#table-of-contents)
 
 ### What if I am not using the advanced features of `EmailSenderLogger`?
 
@@ -428,9 +416,6 @@ EmailSenderLogger.create().add_email_sender_instance(EmailSender.create() or Ema
 Unless you explicitly opt-in to the enhanced features (e.g., by starting a logging session), `EmailSenderLogger` behaves just like `EmailSender`.
 
 ---
-
-
-[🔝 Back to top](#table-of-contents)
 
 
 ## Available Methods
@@ -460,17 +445,15 @@ Method Description
  - send()
 ```
 
-[🔝 Back to top](#table-of-contents)
 
-
-### `EmailSender` Class API Reference
+### EmailSender Class API Reference
 
 #### 🔨 `create()`
 > **Factory method** — Instantiates and returns an `EmailSender` object.
 
 #### 📤 `from_address(email)`
 > **Sets the sender's email address**.  
-> `email`: A string representing the sender's email (e.g. `noreply@yourdomain.com`).
+> `email`: A string representing the sender's email (e.g. `noreply@yourdomain.com`). This is the email address located in your settings.py file variable e.g "EMAIL_HOST_USER"
 
 #### 📥 `to(recipients)`
 > **Sets the recipient(s) of the email**.  
@@ -692,10 +675,7 @@ Method Description
 
 ---
 
-[🔝 Back to top](#table-of-contents)
-
-
-###  `EmailSenderLogger` Class API Reference
+###  EmailSenderLogger Class API Reference
 
 ### 🔨 `create()`
 > **Factory method** — Instantiates and returns an `EmailSenderLogger` object.
@@ -836,47 +816,47 @@ Use the following methods to manage logging dynamically during the email sending
 
 ---
 
-#### [`stop_logging_session()`](#stop_logging_session) 🔒  
+#### 🔒  `stop_logging_session()`  
 > Completely disables further logging and ends the session.
 
 ---
 
-#### [`pause_logging()`](#pause_logging) ⏸️  
+####  ⏸️ `pause_logging()`
 > Temporarily pauses logging without clearing state.
 
 ---
 
-#### [`resume_logging()`](#resume_logging) ▶️  
+####  ⏸️ `resume_logging()`  
 > Resumes logging after a `pause_logging()` call.
 
 
-#### 📬 `is_email_sent` (Property)
+#### 📬 `is_email_sent (property)`
 > Returns `True` if the last email was successfully sent, otherwise `False`.
 
 ---
 
-#### 🔢 `email_delivery_count` (Property)
+#### 🔢 `email_delivery_count (property)`
 > Returns the number of successfully delivered emails in the current session.
 
 ---
 
-#### 📦 `payload` (Property)
+#### 📦 `payload (Property)`
 > Returns the email payload dictionary. Useful for auditing and testing.
 
 ---
 
-#### 🧾 `email_meta_data` (Property)
+#### 🧾 `email_meta_data (Property)`
 > Returns meta information such as timestamps, recipients, and status.
 
 ---
 
-#### 🧮 `return_successful_payload()` (Not chainable)
+#### 🧮 `return_successful_payload() (Not chainable)`
 > Returns a *copy* of the `_field_changes` dictionary, which logs what fields were changed and when.  
 > This ensures the original audit trail remains unmodified.
 
 ---
 
-### 🧠 set_traceback(show_traceback: bool, method_tracing: bool = False )
+#### 🧠 `set_traceback(show_traceback: bool, method_tracing: bool = False )`
 > method_tracing: show exactly which methods were called during your email building process, `set_traceback()` is your friend. It provides a step-by-step breakdown of the chained method calls that lead up to sending an email. Note, this must be set to `True`, default is `False`
 > show_traceback: shows you a traceback error including the point where the error originated.
    
@@ -901,18 +881,17 @@ Use the following methods to manage logging dynamically during the email sending
 #### 🧠 `enable_email_meta_data_save(save_to_db=True)`
 > Enables metadata saving for each email sent. If `save_to_db=True`, the metadata will also be saved to the database via the configured model.
 
-### 🧠 return_successful_payload()
+#### 🧠 `return_successful_payload()`
 >  Returns the email payload for logging, but only if the email was successfully processed.
 
 
-[🔝 Back to top](#table-of-contents)
 
+### Additional API Notes
 
-## Additional API Notes
+🔁 Shared Methods Between EmailSenderLogger and EmailSender
 
-### 🔁 Shared Methods Between `EmailSenderLogger` and `EmailSender`
+📎 Since EmailSenderLogger is a wrapper around EmailSender, it inherits many of the same methods. For more detailed explanations, refer to the [EmailSender API](#emailsender-class-api-reference) section.
 
-📎 Since `EmailSenderLogger` is a wrapper around `EmailSender`, it inherits many of the same methods. For more detailed explanations, refer to the [EmailSender API](#emailsender-class-api-reference) section.
 
 ##  Using Model Constants to Minimise Errors
 
@@ -925,7 +904,7 @@ Instead of hardcoding strings like `"from_email"` or `"subject"` when specifying
 
 ---
 
-### `EmailSenderConstants` Fields 🔠
+#### EmailSenderConstants Fields 🔠
 
 
 | Constant                               | Field Name           | Description                                        |
@@ -957,11 +936,11 @@ email_sender_with_logging.exclude_fields_from_logging(
 This approach ensures consistency across your codebase and provides a single source of truth for all field and method references related to EmailSender and EmailSenderLogger.= "add_new_recipient"
 
 
-[🔝 Back to top](#table-of-contents)
+---
 
-###  `EmailSender` and `EmailSenderLogger` Methods
+####  EmailSender and EmailSenderLogger Methods
 
-#### **Core Functions**
+**Core Functions**
 
 | Name                           | Type    | Chainable | Description                                      | Defined In           |
 |---------------------------------|---------|-----------|--------------------------------------------------|----------------------|
@@ -981,7 +960,7 @@ This approach ensures consistency across your codebase and provides a single sou
 | `clear_text_template()`        | Method  | ✅         | Clears the text template                         | Both                 |
 | `clear_all_fields()`           | Method  | ✅         | Clears all email-related fields                  | Both                 |
 
-#### **Database Access**
+### Database Access
 
 | Name                           | Type    | Chainable | Description                                      | Defined In           |
 |---------------------------------|---------|-----------|--------------------------------------------------|----------------------|
@@ -989,7 +968,7 @@ This approach ensures consistency across your codebase and provides a single sou
 | `add_log_model()`              | Method  | ✅         | Attach a model to persist email logs             | `EmailSenderLogger`  |
 | `enable_email_meta_data_save()`| Method  | ✅         | Enables saving of email meta to the database     | `EmailSenderLogger`  |
 
-#### **Logging and Verbose Functions**
+#### Logging and Verbose Functions
 
 | Name                           | Type    | Chainable | Description                                      | Defined In           |
 |---------------------------------|---------|-----------|--------------------------------------------------|----------------------|
@@ -1007,7 +986,7 @@ This approach ensures consistency across your codebase and provides a single sou
 
 
 
-#### **Logging Level Methods**
+#### Logging Level Methods
 
 | Name                           | Type    | Chainable | Description                                      | Defined In           |
 |---------------------------------|---------|-----------|--------------------------------------------------|----------------------|
@@ -1017,7 +996,7 @@ This approach ensures consistency across your codebase and provides a single sou
 | `to_error()`                   | Method  | ✅         | Changes the level to error                        | `EmailSenderLogger`  |
 
    
-#### **Properties and Metadata**
+#### Properties and Metadata
 
 | Name                           | Type      | Chainable | Description                                      | Defined In           |
 |---------------------------------|-----------|-----------|--------------------------------------------------|----------------------|
@@ -1029,7 +1008,7 @@ This approach ensures consistency across your codebase and provides a single sou
 
 ---
 
-### **Explanation of Categories:**
+#### Explanation of Categories:
 
 - **Core Functions**: The main email sending functionality, like setting recipients, subject, context, templates, headers, and clearing fields.
   
@@ -1041,7 +1020,8 @@ This approach ensures consistency across your codebase and provides a single sou
 
 
 ---
-[🔝 Back to top](#table-of-contents)
+
+<br>
 
 
 ## Code Style Tips
@@ -1096,8 +1076,6 @@ This method is cleaner, more readable, and less error-prone:
 
 django-email-sender is a Django package that allows you to send emails using customizable templates, with easy-to-use methods for setting the sender, recipients, subject, and context.
 
-## Installation
-
 To install the package:
 ```pip install django-email-sender ```
 
@@ -1112,7 +1090,7 @@ For more details, visit [the PyPI page](https://pypi.org/project/django-email-se
 - **Python 3.10+**  
   This library uses [Structural Pattern Matching](https://docs.python.org/3/whatsnew/3.10.html#structural-pattern-matching), introduced in Python 3.10, via the `match`-`case` syntax.
 
-### Why Python 3.10?
+#### Why Python 3.10?
 
 One of the key features used in this project is the `match`-`case` syntax, which offers a more readable and expressive way to handle complex conditional logic.
 
@@ -1145,11 +1123,9 @@ This package has been tested against Django 5.2 (the latest version at the time 
 ⚠️ **Compatibility with Django 6.x and beyond is not yet guaranteed.** If you're using a future version, proceed with caution and consider opening an issue if anything breaks.
 
 
-[🔝 Back to top](#table-of-contents)
-
 ---
 
-### Logger and Database Integration
+## Logger and Database Integration
 
 🧩 `EmailSender`via `EmailSenderLogger`, supports optional integration with both logging and database persistence for email sending events.
 
@@ -1198,7 +1174,7 @@ The parameters available for `config_logger` are:
 | `log_level`  | `LoggerType` str (required) | The log level to listen to (e.g., "info", "error"). |
 
 
-### 📝 Notes
+#### 📝 Notes
 
   - If no logger is set, `EmailSenderLogger` will **not log anything**
 
@@ -1208,7 +1184,7 @@ The parameters available for `config_logger` are:
 
 ---
 
-## Example Setting up a simple Logger with EmailSenderLogger
+### Example Setting up a simple Logger with EmailSenderLogger
 
 In this section, we'll configure a Python simple logger and demonstrate how to integrate it with `EmailSenderLogger`.
 
@@ -1263,8 +1239,6 @@ def my_custom_formatter(exception: Exception, trace: str) -> str:
 
 ---
 
-
-
 ###  Enabling the Logger
 
 🔒 By default, even if you've configured your logger using methods such as `config_logger()` or ` **logging will not begin until you explicitly call** `start_logging_session()`. This ensures that there is no accidental logging unless you want to log.
@@ -1302,11 +1276,7 @@ If your logs are not being recorded or saved even after calling `config_logger()
 > if you are still not seeing any logs? Look for `[Logger Not Enabled: Logger is not enabled. Skipping logging.]` messages — it means logging was configured but never started.
 
 
-
-[🔝 Back to top](#table-of-contents)
-
-
-## Reuse the Logger and Formatter Across Multiple Emails
+### Reuse the Logger and Formatter Across Multiple Emails
 
 If you have set up a custom logger or formatter setup and plan to send multiple emails, **you don't need to set them up every single time**.
 
@@ -1408,14 +1378,15 @@ But if you're only sending 1–2 emails each time, it's easier to just create a 
 ✅ Powerful for advanced users
 
 ---
-
-[🔝 Back to top](#table-of-contents)
+<br>
 
 ###  Tracing Method Chains and logging errors with `set_traceback`
 
 🧭 If you ever wanted to know exactly which methods were called during your email building process, `set_traceback()` is your friend. It provides a step-by-step breakdown of the chained method calls that lead up to sending an email.
 
-#### This is especially useful for debugging complex chains, understanding the flow, or simply verifying that everything is working in the expected order. 
+This is especially useful for debugging complex chains, understanding the flow, or simply verifying that everything is working in the expected order. 
+
+<br>
 
 ### Why Use Method Tracing?
 
@@ -1424,6 +1395,8 @@ When working with complex chains of method calls or deeply nested logic, it can 
 - **Debug complex chains** with greater ease  
 - **Understand execution flow** step-by-step  
 - **Verify correct method ordering and dependencies**
+
+<br>
 
 ### Enabling chain tracing
 
@@ -1439,7 +1412,9 @@ Chain tracing is only shown at the `debug level` and when `enable_verbose` mode 
 1. **Method Chain Tracking**  
    The method chain begins from the initial call (e.g., `create()`) and continues through all chained methods like `to()`, `with_subject()`, and so on. Each method gets logged in real-time.
 
-### ⚙️ Behind the Scenes (Optional Detail for Power Users)
+<br>
+
+⚙️ **Behind the Scenes (Optional Detail for Power Users)**
 
 Internally, `show_traceback()` appends each method name and its arguments to a trace log as the chain is built. This is particularly helpful in:
 
@@ -1448,7 +1423,7 @@ Internally, `show_traceback()` appends each method name and its arguments to a t
 - Understanding flow when extending or contributing to the library
 
 
-### 🧪 Example Output from `set_traceback(method_tracing=True)`
+🧪 **Example Output from set_traceback(method_tracing=True)**
 
 When `set_traceback(method_tracing=True)` is enabled, you’ll see something like this in your logs or console (depending on your logger configuration):
 
@@ -1478,7 +1453,7 @@ Each arrow (`→`) represents a method call in your builder chain. This gives yo
    
    This allows you to track back to the root cause of an issue quickly and effectively.
 
-### Example of an error traceback:
+**Example of an error traceback:**
 
 Consider an email sending process like this:
 
@@ -1510,13 +1485,13 @@ File "email_sender.py", line 145, in _send
 TemplateNotFoundError: HTML template not found
 ```
 
-### Breakdown of what happens:
+**Breakdown of what happens:**
 
 * The log shows the exact method calls that were made in the process.
 * The error is flagged, and the traceback reveals where the failure occurred— in the `_send()` method, specifically due to a `TemplateNotFoundError`.
 * You can now see **exactly** which method caused the problem and what the error was, making it easier to debug.
 
-### Why is this useful?
+**Why is this useful?**
 
 * **Debugging Complex Chains**: If you're chaining many methods together, it’s often hard to track down where an error happens. `show_traceback=True` ensures that you know exactly where to look.
 
@@ -1549,10 +1524,9 @@ if os.getenv("ENV") == "development":
 email_sender.send()
 
 ```
-[🔝 Back to top](#table-of-contents)
+---
 
-
-## Turning on Verbose Mode
+### Turning on Verbose Mode
 
 When using `EmailSenderLogger`, depending on the log level you’ve chosen (`info`, `warning`, `error`, or `debug`), you'll see information corresponding to those levels. By default, the logger doesn't show detailed step-by-step information to avoid overwhelming you. Instead, it focuses on providing the most relevant details for debugging.
 
@@ -1584,10 +1558,10 @@ email_sender = (
 
 ```
 ---
-[🔝 Back to top](#table-of-contents)
 
+<br>
 
-## Setting up an advanced logger
+### Setting up an advanced logger
 
 In the above example we set up a very limited logger that doesn't involve the user configure the `settings.py` file, however that 
 logger has several limited.
@@ -1603,6 +1577,8 @@ logger has several limited.
 
 - **Handler added multiple times:**
   - If the code runs multiple times (e.g., Django imports modules multiple times), you could end up attaching multiple handlers, which causes duplicate log messages.
+
+<br>
 
 ### To configure your email_sender_logger properly through Django's LOGGING settings
 
@@ -1680,7 +1656,7 @@ Note:
   you send an email it will nicely be displayed in a formatted setting.
 
 
-## Advanced Tip: Rotate Log Files Automatically
+### Advanced Tip: Rotate Log Files Automatically
 
 For larger applications, it's recommended to rotate your log files to avoid growing indefinitely.
 You can modify the file handler to automatically create a new log file each day:
@@ -1700,10 +1676,8 @@ from logging.handlers import TimedRotatingFileHandler
 ```
 This will keep your logs clean without manually deleting old files.
 
-[🔝 Back to top](#table-of-contents)
 
-
-## Advanced Logger Usage
+### Advanced Logger Usage
 
 `EmailSenderLogger` allows you to monitor and capture detailed information while using the `EmailSender`. You can configure it in various ways depending on how much control or verbosity you need.
 
@@ -1711,12 +1685,12 @@ The most straightforward usage is to configure the logger with a specific log le
 
 ---
 
-## 🔹 First Approach
-### Set up the Logger with a Log Level
+#### 🔹 First Approach
+
+**Set up the Logger with a Log Level**
 
 You can initialise a logger and attach it to `EmailSenderLogger` to record activity at a chosen level. This is useful for capturing general usage, errors, or debugging info.
 
-```
 ```python
 
 EmailSenderLogger.create().config_logger(
@@ -1726,9 +1700,10 @@ EmailSenderLogger.create().config_logger(
 
 ```
 
-### Second Approach
+#### Second Approach
 
-###  .log_only_fields(*fields)
+#### `.log_only_fields(*fields)`
+
 Use the .log_only_fields() method to log only specific fields you're interested in.
 
 This gives you fine-grained control and avoids cluttering your logs with unnecessary data.
@@ -1748,10 +1723,9 @@ EmailSenderLogger.create()
 
 ```
 
----
 
-## 🔹 Third Approach
-### `.exclude_fields_from_logging(*fields)`
+#### 🔹 Third Approach
+**`.exclude_fields_from_logging(*fields)`**
 
 Sometimes, you might want to log *everything except* certain fields.  
 The `.exclude_fields_from_logging()` method allows you to omit specific fields from being recorded in your logs.
@@ -1774,14 +1748,15 @@ EmailSenderLogger.create()
 > These methods are mutually exclusive—use one or the other depending on your logging preference.
 
 
+---
+<br>
 
 ### 🔄 Change Levels Dynamically During Logging
 During the logging process, you may wish to change levels to capture different aspects of what’s happening. For instance, you might start in `DEBUG` mode and then switch to `INFO`, `WARNING`, or `ERROR` depending on what data you want to capture.
 
 You can do this using `.to_debug()`, `.to_info()`, `.to_warning()`, and `.to_error()` — all without restarting or reconfiguring the logger.
 
-````python
-
+<br>
 
 #### 🧪 Example 1 – Switching Levels While Chaining
 ```python
@@ -1802,7 +1777,8 @@ email_sender = (
         .to_error()                                    # Final switch to ERROR
         .send()
 )
-````
+```
+<br>
 
 #### 🧪 Example 2 – Changing Levels with `config_logger`
 
@@ -1831,7 +1807,7 @@ logger = logging.getLogger("email_sender")
 )
 ```
 
----
+<br>
 
 ###  Cancel or Pause Logging Mid-Flow
 
@@ -1843,6 +1819,8 @@ Use the following methods:
 - [`stop_logging_session()`](#stop-logging-session) — permanently stops logging for the current flow.
 - [`pause_logging()`](#pause-logging) — temporarily halts logging.
 - [`resume_logging()`](#resume-logging) — resumes logging after a pause.
+
+<br>
 
 #### Example: Stopping the Logging Session
 
@@ -1864,6 +1842,8 @@ email_sender = (
 ```
 
 Anything after the `.to()` field will not be captured in the logs.
+
+<br>
 
 #### Example: Pausing and Resuming Logging
 
@@ -1887,20 +1867,18 @@ email_sender = (
 
 **Key points**
     
-    - Provides advanced way to log or monitor or your data
-
-    - Allows you to log or exclude fields 
-
-    - Allows you to an `end point` where it can then run up to
-    
-    - Does not force you to use these advanced featues, you can just as easily set up with `config_logger` and let run or use no logger at all
-    
-    - It is easier for beginners to use and allows `advanced` users more control over their logging
-
-[🔝 Back to top](#table-of-contents)
+- Provides advanced way to log or monitor or your data
+- Allows you to log or exclude fields 
+- Allows you to an `end point` where it can then run up to
+- Does not force you to use these advanced featues, you can just as easily set up with `config_logger` and let run or use no logger at all
+- It is easier for beginners to use and allows `advanced` users more control over their logging
 
 
-##  Sample Logging Report
+<br>
+
+###  Sample Logging Report
+
+<br>
 
 📄 Below is a **sample snippet** from the logging output generated when an email is processed using `EmailSenderLogger` with logging enabled.
 
@@ -1934,28 +1912,23 @@ This report captures a comprehensive summary of the email sending process—incl
 [2025-05-08 06:49:56,768] INFO     email_sender : [________________________________________________________________________
 ```
 
-[🔝 Back to top](#table-of-contents)
+---
 
-
-## Database Integration
+### Database Integration
 
 `EmailSenderLogger` allows users to optionally persist email metadata to a database. This is useful for audit logs, diagnostics, and history tracking.
 
 🔔 Note: `EmailSenderLogger` does not create or manage any database tables. You must define your own log model, and explicitly opt in to database logging.
 
-`Requirements`:
+**Requirements:**
 
-> You must create your own model that inherits from EmailBaseLog.
-
-> The model must be passed as a class, not an instance, using .add_log_model().
-
-> You must explicitly enable database logging using .enable_email_meta_data_save().
-
-> If no valid model is added, no data will be saved
+- You must create your own model that inherits from EmailBaseLog.
+- The model must be passed as a class, not an instance, using .add_log_model().
+- You must explicitly enable database logging using .enable_email_meta_data_save().
+- If no valid model is added, no data will be saved
 
 
-
-### 📄 Example: Custom Email Log Model
+#### 📄 Example: Custom Email Log Model
 
 ```python
 
@@ -1999,12 +1972,12 @@ email_sender = ( EmailSenderLogger.create().start_logging_session()
 )
 
 ```
-
 ---
-[🔝 Back to top](#table-of-contents)
+<br>
 
----
 ## 🔍 Payload & Metadata Access
+
+<br>
 
 ### Payload Inspection
 
@@ -2012,8 +1985,10 @@ email_sender = ( EmailSenderLogger.create().start_logging_session()
 
 This enables developers to **inspect**, **log**, or **persist** detailed data related to any email being sent. The payload is **dynamically constructed**, allowing you to access and inspect it either **after sending the email** or **as you build each field** during the setup process.
 
+<br>
 
-### ✅ What the Payload Includes:
+#### ✅ What the Payload Includes:
+
 - `from_email` → Email address of the sender  
 - `to_email` → List or string of recipient addresses  
 - `subject` → Subject line of the email  
@@ -2022,7 +1997,9 @@ This enables developers to **inspect**, **log**, or **persist** detailed data re
 - `context` → Context dictionary used to render the template  
 - `headers` → Any custom headers attached to the message  
 
-### ⚠️ Why This Method Is Not Chainable
+<br>
+
+#### ⚠️ Why This Method Is Not Chainable
 
 Unlike other methods in `EmailSender`, this one is **not chainable**. This is intentional.
 
@@ -2030,8 +2007,10 @@ The purpose of the method is to return a structured payload containing dynamic e
 
 This design ensures developers have **immediate access** to the email data when they need it — whether during construction or after sending to either inspect or use as part of the application. Making it chainable would require additional steps to extract the data, which would reduce clarity and usability.
 
+<br>
 
-### 📦 Example usage :
+#### 📦 Example usage :
+
 ```python
 payload = email_sender.payload
 print(payload)
@@ -2050,7 +2029,7 @@ or
 # use the data somewhere in your application
 
 ```
-[🔝 Back to top](#table-of-contents)
+---
 
 
 ## HTML Email Template Example
@@ -2107,7 +2086,7 @@ This example shows a verification email template that you can use out of the box
 
 ---
 
-### 📄 Plain Text Email Example
+## 📄 Plain Text Email Example
 
 🗂️ **Save this as**: `templates/emails_templates/emails/verify_email.txt`
 
@@ -2147,7 +2126,7 @@ EmailSender.create()
 ✨ This approach helps you keep your email logic clean and makes templates easy to design or preview.
 
 
-### Explanation:
+## Explanation:
 
 - `.from_address("no-reply@example.com")`: Specifies the sender's email address.
 - `.to("recipient@example.com")`         : Specifies the recipient's email address.
@@ -2159,8 +2138,7 @@ EmailSender.create()
 
 ---
 
-[🔝 Back to top](#table-of-contents)
-
+<br>
 
 ## Subclassing
 
@@ -2192,7 +2170,7 @@ PasswordResetEmail(user).build().send()
 
 Here, the `PasswordResetEmail` class uses `reset_password.txt` and `reset_password.html` templates from the `emails` folder.
 
-[🔝 Back to top](#table-of-contents)
+<br>
 
 ---
 
@@ -2285,17 +2263,15 @@ You **must** have both an `.html` and `.txt` version of the email template. Thes
 
 ---
 
-
 ## Configuring the Template Directory**
 
 📁 EmailSender allows you to easily configure the location of template directories used by the app, including email templates. By default, `EmailSender` will look for templates in a `templates` folder inside the base directory of your project. However, if you'd like to customize the location, you can do so using the `MYAPP_TEMPLATES_DIR` setting in your Django project's `settings.py`.
 
-[🔝 Back to top](#table-of-contents)
-
 ---
 
+<br>
 
-## Default Behaviour
+### Default Behaviour
 
 By default, EmailSender will look for templates in the following directory:
 
@@ -2308,9 +2284,12 @@ Where:
 - `templates` is the default directory where EmailSender expects to find your templates.
 - `emails_templates` is the subdirectory where email-related templates should be stored.
 
+
 ### Customizing the Template Directory Path
 
 If you'd like to customize the template directory location, you can define the `MYAPP_TEMPLATES_DIR` setting in your `settings.py` file. 
+
+<br>
 
 ### Steps to Override:
 
@@ -2336,13 +2315,16 @@ In this example:
 
 ---
 
-## **How It Works**
+### **How It Works**
 
 - **`MYAPP_TEMPLATES_DIR`**: If defined, EmailSender uses this setting to locate the main template folder.
 - **Fallback**: If `MYAPP_TEMPLATES_DIR` is not defined, EmailSender falls back to the default location: `{BASE_DIR}/templates`.
 - **Email Templates**: EmailSender looks specifically in the `emails_templates/` subdirectory for email-related templates.
 
-### Example File Structure:
+<br>
+
+#### Example File Structure:
+
 
 #### Default Setup:
 ```
@@ -2367,8 +2349,6 @@ my_project/
 
 ```
 
-[🔝 Back to top](#table-of-contents)
-
 ---
 
 ## **Error Handling**
@@ -2377,31 +2357,29 @@ If EmailSender cannot find the templates in the expected location, it will raise
 
 If `BASE_DIR` is not defined in `settings.py`, an `ImproperlyConfigured` error will be raised to prompt you to define it.
 
-[🔝 Back to top](#table-of-contents)
 
 ---
 
-## **Fallback Logic**
+### **Fallback Logic**
 
 In case the `MYAPP_TEMPLATES_DIR` is not defined in `settings.py`, EmailSender will automatically fallback to the default template directory (`templates`) without requiring any extra configuration.
 
 
-### Conclusion
+**Conclusion**
 
 The `MYAPP_TEMPLATES_DIR` setting provides flexibility for users who prefer to store their templates in a custom location. By defining this setting in `settings.py`, users can control where the templates for EmailSender (including email templates) are stored, ensuring a smooth and configurable integration.
 
-[🔝 Back to top](#table-of-contents)
 
 ---
 
 
-## Putting It All Together
+### Putting It All Together
 
 This guide shows how to use `django-email-sender` in a Django project to send a verification email. This will not be using a logger. [See the logger section](#logger) See logger section on how to use `EmailSender` with a logger.
 
 ---
 
-### 🛠 Step 1: Virtual Environment
+#### 🛠 Step 1: Virtual Environment
 
 ```bash
 python -m venv venv
@@ -2411,7 +2389,7 @@ source venv/bin/activate      # On Mac or linux use: venv\Scripts\activate
 
 ---
 
-### 📦 Step 2: Install Dependencies
+#### 📦 Step 2: Install Dependencies
 
 ```bash
 pip install django django-email-sender
@@ -2419,7 +2397,7 @@ pip install django django-email-sender
 
 ---
 
-### ⚙️ Step 3: Create a Django Project
+#### ⚙️ Step 3: Create a Django Project
 
 ```bash
 django-admin startproject config .
@@ -2430,11 +2408,12 @@ In `config/settings.py`, add `'core'` to `INSTALLED_APPS`.
 
 ---
 
-### 🧱 Step 4: Update Django Settings
+#### 🧱 Step 4: Update Django Settings
 Add the following settings to your settings.py file to configure the email backend and other email-related settings.
 
+<br>
 
-#### Email settings
+#### Email settings configurations
 ```
 EMAIL_BACKEND        = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST           = 'smtp.example.com'  # Replace with your email provider's SMTP server
@@ -2470,7 +2449,7 @@ If you are using gmail to send emails then the setup would look like
 
 
 ```
-### Important Notes:
+#### Important Notes:
 
  - App Password: If you have two-factor authentication (2FA) enabled for your Gmail account, you'll need to create an App Password instead of using your   regular Gmail password. You can generate it in your Google account settings.
 
@@ -2478,8 +2457,9 @@ If you are using gmail to send emails then the setup would look like
 
 This configuration should allow you to send emails via Gmail's SMTP server.
 
+<br>
 
-### 🧱 Step 4: Create Email Templates
+#### 🧱 Step 4: Create Email Templates
 
 Create the folder structure :
 
@@ -2512,7 +2492,7 @@ TEMPLATES = [
 
 ---
 
-### 🧪 Step 5: Add a Test View
+#### 🧪 Step 5: Add a Test View
 
 In `core/views.py`:
 
@@ -2536,7 +2516,7 @@ def test_email_view(request):
 
 ---
 
-### 🔗 Step 6: Wire Up URLs
+#### 🔗 Step 6: Wire Up URLs
 
 Create `core/urls.py`:
 
@@ -2565,7 +2545,7 @@ urlpatterns = [
 
 ---
 
-### 🚀 Step 7: Run and Test
+#### 🚀 Step 7: Run and Test
 
 ```bash
 python manage.py runserver
@@ -2607,11 +2587,11 @@ Open [http://localhost:8000/send-verification-email/](http://localhost:8000/send
    * **Metadata Storage**: Save email metadata (like recipients, subject, timestamp) to a database for auditing purposes.
 6. View the logging output in your console or test out these features.
 
-#### What is `django.core.mail.backends.console.EmailBackend`?
+#### What is django.core.mail.backends.console.EmailBackend?
 
 It **replicates** the entire process of sending an email but logs it to the console instead of actually sending it to an address. This allows you to test the email-related features of `EmailSenderLogger` safely without sending real emails.
 
-### Example View
+#### Example View
 
 ```python
 # views.py
@@ -2665,26 +2645,24 @@ def test_email(request):
 * This process allows you to safely check the logging, field filtering, metadata, payload, emails database storage features, etc without worrying about sending real emails to recipients.
 
 
-[🔝 Back to top](#table-of-contents)
-
 
 ## Best Practices
 
-### 1. **Configure a Logger in Production**
+1. **Configure a Logger in Production**
    - Always configure a logger for production environments to track errors and activities.
    - Ensure that your logger is properly set up before calling `.send()`. This helps with debugging and provides valuable insights into any email issues.
 
-### 2. **Use `.send()` as the Final Call**
+1. **Use `.send()` as the Final Call**
    - The `.send()` method should be the last call in your chain. Ensure all other configurations (like `to()`, `from_address()`, etc.) are set before calling `.send()`.
 
-### 3. **Logging Customization**
+1. **Logging Customization**
    - For more advanced logging, customize the format by providing a `custom_formatter` function. This can help format error messages or traceback details according to your needs.
    - The `custom_formatter` function must accept two arguments: an `Exception` and a `traceback` string. This ensures security and prevents injection vulnerabilities.
 
-### 4. **Set Traceback Visibility During Development**
+1. **Set Traceback Visibility During Development**
    - Set the `show_traceback=True` flag during development to view detailed error traces. This is helpful for debugging, but should be turned off in production to avoid exposing sensitive information.
 
-### 5. **Related folder names**
+1. **Related folder names**
 
 - **Use the same `folder_name` for related templates (text and HTML):**  
   This keeps your project **organised**, **consistent**, and **easy to maintain**.
@@ -2705,34 +2683,35 @@ def test_email(request):
     │               └── register.txt
 
 ---
-[🔝 Back to top](#table-of-contents)
 
 
 ## Worst Practices
 
 
-### 1. **Skipping Logger Configuration**
+1. **Skipping Logger Configuration**
    - **Avoid skipping logger configuration**, especially in production. Not configuring a logger will result in missed error details, making it much harder to debug issues. Always pass a logger if you want insights into what's happening during the email sending process.
 
-### 2. **Calling `.send()` Before Finalizing Email Details**
+1. **Calling `.send()` Before Finalizing Email Details**
    - **Don’t call `.send()` before setting all required email details** like `to(...)`, `from_address(...)`, `with_subject(...)`, etc. Calling `.send()` will result in an error raised.
 
-### 3. **Using a Custom Formatter with Incorrect Parameters**
-   - **Don’t pass an invalid custom formatter**. The `custom_formatter` function must accept exactly two arguments: an `Exception` and a `traceback` string. Passing in incorrect arguments will result in an error being raised.
+1. **Using a Custom Formatter with Incorrect Parameters**
+   - Don’t pass an invalid custom formatter**. The `custom_formatter` function must accept exactly two arguments: an `Exception` and a `traceback` string. Passing in incorrect arguments will result in an error being raised.
 
-### 4. **Leaving Tracebacks Visible in Production**
-   - **Never leave detailed tracebacks visible in production**. Tracebacks should only be shown in a development environment. Exposing them in production can reveal sensitive information to users or attackers, potentially causing security issues.
+1. **Leaving Tracebacks Visible in Production**
+   - Never leave detailed tracebacks visible in production**. Tracebacks should only be shown in a development environment. Exposing them in production can reveal sensitive information to users or attackers, potentially causing security issues.
 
-### 5. **Ignoring Error Handling for Email Failures**
-   - **Don’t ignore errors** when email sending fails. Always ensure you have error handling in place, whether it’s logging or retries, so that you’re aware of any issues that occur during the email process.
+1. **Ignoring Error Handling for Email Failures**
+   - Don’t ignore errors when email sending fails. Always ensure you have error handling in place, whether it’s logging or retries, so that you’re aware of any issues that occur during the email process.
 
-### 6. **Mixing Different Log Levels without Thought**
+1. **Mixing Different Log Levels without Thought**
    - **Don’t randomly mix log levels** without a clear purpose. Choose a log level for each message carefully (`INFO`, `WARNING`, `ERROR`, etc.) to make your logs structured and easy to interpret.
-### 7. **Skipping the logger** 
- - Skipping the logger and then struggling to debug when an email fails.
 
-### 5. **Mixing unrelated templates together randomly:**
-- **Keeping related files in a different `folder_name`** 
+ 1. **Skipping the logger** 
+    - Skipping the logger and then struggling to debug when an email fails.
+
+ 1. **Mixing unrelated templates together randomly:**
+    - Keeping related files in a different `folder_name`
+
 For example :  
 This makes your project **messy**, **error-prone**, and **hard to maintain**.
   
@@ -2755,7 +2734,8 @@ This makes your project **messy**, **error-prone**, and **hard to maintain**.
     │           └── welcome.txt
     ```
 
-- **Key issues:**  
+- **Key issues:** 
+
   - Templates from different features (login, passwords, marketing) are **thrown together** with no clear separation.
   - Some templates are **floating randomly** without folders.
   - Backup files are mixed with production files.
@@ -2765,14 +2745,13 @@ This makes your project **messy**, **error-prone**, and **hard to maintain**.
 
 
 ---
-[🔝 Back to top](#table-of-contents)
 
+<br>
 
-
-## License
+### License
  - This package is licensed under the MIT License. See the LICENSE file for details.
 
-## Credits
+### Credits
  -This library was created and maintained by Egbie Uku a.k.a EgbieAndersonUku1.
 
 [🔝 Back to top](#table-of-contents)
