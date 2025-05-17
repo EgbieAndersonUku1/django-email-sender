@@ -1,6 +1,8 @@
 [![Downloads](https://static.pepy.tech/badge/django-email-sender)](https://pepy.tech/project/django-email-sender)
 [![PyPI version](https://img.shields.io/pypi/v/django-email-sender/2.0.5.svg?color=blue)](https://pypi.org/project/django-email-sender/2.0.0/)
 
+📚 **Documentation**: [View the full documentation here](https://django-email-sender.readthedocs.io/en/latest/)
+
 
 # 📧 Django Email Sender Version 2
 
