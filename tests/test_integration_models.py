@@ -2,6 +2,7 @@ from django.test import TestCase
 
 from django_email_sender.email_sender import EmailSender
 from django_email_sender.exceptions import TemplateDirNotFound, IncorrectEmailSenderInstance
+from django_email_sender.email_sender_constants import EmailSenderConstants as EmailSenderFieldConstants
 from .test_fixture import (EmailSenderConstants, 
                            create_email_sender_instance,
                            create_template_path,
@@ -15,7 +16,8 @@ from .test_fixture import (EmailSenderConstants,
 class EmailSenderLoggerTest(TestCase):
     
     def setUp(self):  
-        self.email_sender_logger = create_email_logger_instance(EmailSenderConstants, EmailSender.create())
+        self.email_sender_logger    = create_email_logger_instance(EmailSenderConstants, EmailSender.create())
+        self.EXPECTED_NUM_OF_FIELDS = 9
     
     def test_email_logger_is_created(self):
         self.assertTrue(self.email_sender_logger)
@@ -161,3 +163,121 @@ class EmailSenderLoggerTest(TestCase):
         self.assertCountEqual(email_logger.list_of_recipients, [TEST_EMAIL, TEST_EMAIL_2], 
                               msg=f"Expected the list of recipients to be 2 but got {len(email_logger.list_of_recipients)}")
     
+    
+    def test_fields_can_be_added_to_exclusion_list(self):
+        """
+        Test that fields can be added to the exclusion list, and the proper flags
+        set, so that when added in the views it consequently excluded from logging.
+
+        This verifies that:
+        - Fields added to the exclusion list appear in the internal exclusion set.
+        - Being in the exclusion list means those fields will not be logged.
+        - Relevant flags are updated to reflect that exclusion-based logging is enabled.
+        - Inclusive logging remains disabled, ensuring excluded fields are not logged.
+
+        This reflects the behavior expected when fields are added via UI or constants.
+        """
+        
+        email_logger_instance = create_email_logger_instance(EmailSenderConstants, EmailSender.create())
+        self.assertTrue(email_logger_instance)     
+
+        # Initially, both inclusive and exclusion trace logging flags should be disabled
+        self.assertFalse(email_logger_instance._enable_field_trace_logging)
+        self.assertFalse(email_logger_instance._enable_exclusion_field_trace)
+        
+        # Exclusion list should be empty at the start
+        self.assertEqual(len(email_logger_instance._exclude_fields), 0)
+        
+        email_fields_to_exclude = self._get_email_field_value_list()
+        email_logger_instance.exclude_fields_from_logging(*email_fields_to_exclude)
+
+        # Assert that the fields to exclude have been added correctly to the exclusion set
+        self._assert_email_fields_in_set(email_logger_instance._exclude_fields)
+    
+        # Verify the number of excluded fields matches expectation
+        self.assertEqual(
+            len(email_logger_instance._exclude_fields), 
+            self.EXPECTED_NUM_OF_FIELDS, 
+            msg=f"Fields: {email_logger_instance._exclude_fields}"
+        ) 
+        
+        # Confirm exclusion-based trace logging is enabled,
+        # while inclusive trace logging remains disabled to prevent logging of excluded fields
+        self.assertFalse(email_logger_instance._enable_field_trace_logging)
+        self.assertTrue(email_logger_instance._enable_exclusion_field_trace)
+        
+        # Inclusive logging fields list should be empty, indicating no fields are included in inclusive logging
+        self.assertFalse(email_logger_instance._fields)
+
+    def test_fields_can_be_added_to_inclusion_list(self):
+        """
+        Test that fields can be added to the inclusion list and the proper flags
+        set, so that when it is called in the view, only those fields are logged.
+
+        This verifies that:
+            - Fields added to the inclusion list appear in the internal inclusion set.
+            - Only fields in the inclusion list are logged.
+            - Relevant flags are updated to reflect that inclusive logging is enabled.
+            - Exclusion-based logging remains disabled to prevent conflicting behavior.
+
+        This reflects the behavior expected when fields are specified via UI or constants
+        to restrict logging exclusively to those fields.
+        """
+        
+        email_logger_instance = create_email_logger_instance(EmailSenderConstants, EmailSender.create())
+        self.assertTrue(email_logger_instance)         
+
+        # Initially, both inclusive and exclusion trace logging flags should be disabled
+        self.assertFalse(email_logger_instance._enable_field_trace_logging)
+        self.assertFalse(email_logger_instance._enable_exclusion_field_trace)
+            
+        # Inclusion list should be empty at the start
+        self.assertEqual(len(email_logger_instance._fields), 0)
+            
+        email_fields_to_include = self._get_email_field_value_list()
+        email_logger_instance.log_only_fields(*email_fields_to_include)
+            
+        # Verify the number of included fields matches expectation
+        self.assertEqual(
+            len(email_logger_instance._fields), 
+            self.EXPECTED_NUM_OF_FIELDS, 
+            msg=f"Fields: {email_logger_instance._fields}"
+           ) 
+            
+        # Confirm inclusive trace logging is enabled,
+        # while exclusion-based trace logging remains disabled
+        self.assertTrue(email_logger_instance._enable_field_trace_logging)
+        self.assertFalse(email_logger_instance._enable_exclusion_field_trace)
+            
+        # Exclusion list should be empty, indicating no fields are excluded
+        self.assertFalse(email_logger_instance._exclude_fields)
+
+        
+    def _assert_email_fields_in_set(self, field_set_name: str):
+        """
+        Assert that all defined email fields (excluding EMAIL_ID) exist in the provided field set.
+
+        This helper method checks that each field's value, except EMAIL_ID, is present
+        in the given set. It is used to confirm that expected fields have been added
+        to an inclusion or exclusion list.
+
+        Args:
+            field_set_name (set): The set of field names to check against.
+        """
+        for email_field in EmailSenderFieldConstants.Fields:
+            if email_field.value == EmailSenderFieldConstants.Fields.EMAIL_ID:
+                continue
+            self.assertIn(email_field.value, field_set_name, msg=f"Field {email_field} is not found")
+
+    
+    def _get_email_field_value_list(self):
+        """
+        Return a list of string values for all email fields defined in EmailSenderFieldConstants.Fields,
+        excluding EMAIL_ID.
+
+        This helper is typically used to generate test inputs for inclusion or exclusion lists.
+
+        Returns:
+            list: A list of field values (strings).
+        """
+        return [field.value for field in EmailSenderFieldConstants.Fields]
