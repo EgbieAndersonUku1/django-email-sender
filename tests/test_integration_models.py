@@ -1,6 +1,7 @@
 from django.test import TestCase
 
 from django_email_sender.email_sender import EmailSender
+from django_email_sender.email_logger import EmailSenderLogger
 from django_email_sender.exceptions import TemplateDirNotFound, IncorrectEmailSenderInstance
 from django_email_sender.email_sender_constants import EmailSenderConstants as EmailSenderFieldConstants
 from .test_fixture import (EmailSenderConstants, 
@@ -18,6 +19,7 @@ class EmailSenderLoggerTest(TestCase):
     def setUp(self):  
         self.email_sender_logger    = create_email_logger_instance(EmailSenderConstants, EmailSender.create())
         self.EXPECTED_NUM_OF_FIELDS = 9
+        self.email_fields           = self._get_email_field_value_list()
     
     def test_email_logger_is_created(self):
         self.assertTrue(self.email_sender_logger)
@@ -188,8 +190,7 @@ class EmailSenderLoggerTest(TestCase):
         # Exclusion list should be empty at the start
         self.assertEqual(len(email_logger_instance._exclude_fields), 0)
         
-        email_fields_to_exclude = self._get_email_field_value_list()
-        email_logger_instance.exclude_fields_from_logging(*email_fields_to_exclude)
+        email_logger_instance.exclude_fields_from_logging(*self.email_fields)
 
         # Assert that the fields to exclude have been added correctly to the exclusion set
         self._assert_email_fields_in_set(email_logger_instance._exclude_fields)
@@ -234,8 +235,7 @@ class EmailSenderLoggerTest(TestCase):
         # Inclusion list should be empty at the start
         self.assertEqual(len(email_logger_instance._fields), 0)
             
-        email_fields_to_include = self._get_email_field_value_list()
-        email_logger_instance.log_only_fields(*email_fields_to_include)
+        email_logger_instance.log_only_fields(*self.email_fields)
             
         # Verify the number of included fields matches expectation
         self.assertEqual(
@@ -281,3 +281,137 @@ class EmailSenderLoggerTest(TestCase):
             list: A list of field values (strings).
         """
         return [field.value for field in EmailSenderFieldConstants.Fields]
+    
+    def test_start_logging_session_flags_are_set_when_method_is_called(self):
+        """
+        Test that when the `start_logging_session` is called the appropriate
+        flags are set.
+        """
+        
+        email_logger_instance = create_email_logger_instance(EmailSenderConstants, EmailSender.create())
+        self.assertFalse(email_logger_instance._logging_enabled)
+        self.assertFalse(email_logger_instance._logger_started)
+        
+        # start the logging session
+        resp = email_logger_instance.start_logging_session()
+        
+        # check the flags
+        self.assertTrue(email_logger_instance._logging_enabled)
+        self.assertTrue(email_logger_instance._logger_started)
+        
+        # check that it returns an instance of EmailSenderLogger
+        self.assertIsInstance(resp, EmailSenderLogger)
+    
+    def test_stop_logging_session_flags_are_set_when_method_is_called(self):
+        """
+        Test that when the `stop_logging_session` is called the appropriate
+        flags are set.
+        """
+        
+        # start the start_logging session and check the flag
+        email_logger_instance = create_email_logger_instance(EmailSenderConstants, EmailSender.create())
+        email_logger_instance.start_logging_session()
+        
+        # check the flags are turned on
+        self.assertTrue(email_logger_instance._logging_enabled)
+        self.assertTrue(email_logger_instance._logger_started)
+        
+        # stop the logging session and check the flags
+        resp = email_logger_instance.stop_logging_session()
+        
+        # check the flags are turned off
+        self.assertFalse(email_logger_instance._logging_enabled)
+        self.assertFalse(email_logger_instance._logger_started)
+        
+        # check that it returns an instance of EmailSenderLogger
+        self.assertIsInstance(resp, EmailSenderLogger)
+        
+    def test_pause_logging_session_flags_are_set_when_method_is_called(self):
+        """
+        Test that when the `pause_logging_session` is called the appropriate
+        flags are set.
+        """
+        email_logger_instance = create_email_logger_instance(EmailSenderConstants, EmailSender.create())
+        email_logger_instance.start_logging_session()
+        
+        # test the neccessary flags are turned on when start session method is called
+        self.assertTrue(email_logger_instance._logging_enabled)
+        self.assertTrue(email_logger_instance._logger_started)
+
+        # call the pause logging
+        resp = email_logger_instance.pause_logging()
+        
+        # test the `enabled flag`` is now False but `logger_started` is still `True`
+        self.assertFalse(email_logger_instance._logging_enabled)
+        self.assertTrue(email_logger_instance._logger_started)
+        
+        # check that it returns an instance of EmailSenderLogger
+        self.assertIsInstance(resp, EmailSenderLogger)
+        
+    def test_resume_logging_session_flags_are_set_when_method_is_called(self):
+        """
+        Test that when the `resume_logging_session` is called the appropriate
+        flags are set.
+        
+        """
+        email_logger_instance = create_email_logger_instance(EmailSenderConstants, EmailSender.create())
+        email_logger_instance.start_logging_session()
+        
+        # test the neccessary flags are turned on when start session method is called
+        self.assertTrue(email_logger_instance._logging_enabled)
+        self.assertTrue(email_logger_instance._logger_started)
+        
+        # call the resume logging
+        resp = email_logger_instance.pause_logging()
+        
+        # test the `enabled flag`` is now False but `logger_started` is still `True`
+        self.assertFalse(email_logger_instance._logging_enabled)
+        self.assertTrue(email_logger_instance._logger_started)
+        
+        # check that it returns an instance of EmailSenderLogger
+        self.assertIsInstance(resp, EmailSenderLogger) 
+    
+    def test_enable_verbose_flag_is_set_after_call(self):
+        """
+        Test that when the `enable_verbose_flag` is called the appropriate
+        flags are set.
+        
+        """
+        # check if enable verbose is set to false to before call
+        self.assertFalse(self.email_sender_logger._debug_verbose)
+        
+        # call the enable verbose method and the check if it s now True
+        resp = self.email_sender_logger.enable_verbose()
+        self.assertTrue(self.email_sender_logger._debug_verbose)
+        
+        # check that it returns an instance of EmailSenderLogger
+        self.assertIsInstance(resp, EmailSenderLogger) 
+        
+    def test_disable_verbose_flag_is_set_after_call(self):
+        """
+        Test that calling `disable_verbose` clears the `_debug_verbose` flag.
+
+        Verifies that `_debug_verbose` is initially False, set to True after calling 
+        `enable_verbose`, and then reset to False after calling `disable_verbose`.
+        """
+        # check if enable verbose is set to false to before call
+        self.assertFalse(self.email_sender_logger._debug_verbose)
+        
+        # call the enable verbose method and check if it now True
+        self.email_sender_logger.enable_verbose()
+        self.assertTrue(self.email_sender_logger._debug_verbose)
+        
+        # disable verbose and check if the flag is now False
+        resp = self.email_sender_logger.disable_verbose()
+        self.assertFalse(self.email_sender_logger._debug_verbose)
+        
+        # check that it returns an instance of EmailSenderLogger
+        self.assertIsInstance(resp, EmailSenderLogger) 
+                
+    def tearDown(self):
+        self.email_sender_logger = create_email_logger_instance(EmailSenderConstants, EmailSender.create())
+        
+
+    
+    
+    

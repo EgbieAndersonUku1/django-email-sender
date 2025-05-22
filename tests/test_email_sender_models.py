@@ -223,9 +223,10 @@ class TestEmailSender(TestCase):
         num_of_recipients_added = len(self.email_sender.list_of_recipients)
         self.assertCountEqual(self.email_sender.list_of_recipients, [TEST_EMAIL, TEST_EMAIL_2], 
                               msg=f"Expected the list of recipients to be 2 but got {len(self.email_sender.list_of_recipients)}")
-    
+            
     
     def tearDown(self):
         # Reset any modified fields since one of the fields is set to a list for
         EmailSenderConstants.to_email = "to-reply@example.com"
         EmailSenderConstants.from_email = "no-reply@example.com"
+   

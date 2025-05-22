@@ -17,9 +17,33 @@ from .test_fixture import (EmailSenderConstants,
 from django_email_sender.messages import EmailStatus
 
 
-       
 TEXT_CONTENT = "text_content"
 HTML_CONTENT = "html_content"
+
+
+def creating_instance_with_missing_fields(from_email: str    = EmailSenderConstants.from_email,
+                                          to_email: str      = EmailSenderConstants.to_email,
+                                          subject: str       = EmailSenderConstants.subject,
+                                          context: dict      = EmailSenderConstants.context,
+                                          headers: dict      = EmailSenderConstants.headers,
+                                          html_template: str = EmailSenderConstants.html_template,
+                                          text_template: str = EmailSenderConstants.text_template, 
+                                          ):
+
+    email_sender = EmailSender.create()
+    (
+            email_sender
+            .from_address(from_email)
+            .to(to_email)
+            .with_subject(subject)
+            .with_context(context)
+            .with_headers(headers)
+            .with_html_template(html_template)
+            .with_text_template(text_template)
+    )
+        
+    return email_sender
+
 
 class EmailSenderSendTest(TestCase):
     
@@ -127,34 +151,6 @@ class EmailSenderSendTest(TestCase):
 
 
 
-
-def creating_instance_with_missing_fields(from_email: str    = EmailSenderConstants.from_email,
-                                          to_email: str      = EmailSenderConstants.to_email,
-                                          subject: str       = EmailSenderConstants.subject,
-                                          context: dict      = EmailSenderConstants.context,
-                                          headers: dict      = EmailSenderConstants.headers,
-                                          html_template: str = EmailSenderConstants.html_template,
-                                          text_template: str = EmailSenderConstants.text_template, 
-                                          ):
-
-    email_sender = EmailSender.create()
-    (
-            email_sender
-            .from_address(from_email)
-            .to(to_email)
-            .with_subject(subject)
-            .with_context(context)
-            .with_headers(headers)
-            .with_html_template(html_template)
-            .with_text_template(text_template)
-    )
-        
-    return email_sender
-
-
-
-
-
 class EmailSenderLoggerSendTest(TestCase):
     
     def setUp(self):  
@@ -190,7 +186,10 @@ class EmailSenderLoggerSendTest(TestCase):
             TEXT_CONTENT,
             msg="Expected the plain text body to match the rendered content"
         )
-    
+
+        # check that processed email flag was set
+        self.assertTrue(self.email_sender_logger._email_was_processed)
+        
     def test_successful_email_send_returns_payload(self):
 
          # Assert that when no email has been sent the payload isis None
@@ -252,5 +251,43 @@ class EmailSenderLoggerSendTest(TestCase):
             timezone.now()
         )
 
+    def test_email_sent_property(self):
+        """
+        Test that the `is_email_sent` property correctly reflects email sending status.
+
+        Initially, the property should be False. After sending an email using the helper 
+        method, it should be True.
+        """
+        self.assertFalse(self.email_sender_logger.is_email_sent)
+
+        # send an email
+        self._send_email_helper()
         
+        # check that an boolean flag of True is returned after an email is sent
+        self.assertTrue(self.email_sender_logger.is_email_sent)
+
+    def test_email_delivery_count(self):
+        """
+        Test that `email_delivery_count` increments correctly when emails are sent.
+
+        Verifies that the count starts at 0, increments by one after each email sent 
+        using the helper method.
+        """
         
+        # test that before an email is sent the count is 0
+        self.assertEqual(self.email_sender_logger.email_delivery_count, 0)
+        
+        # send an email
+        self._send_email_helper()
+        
+        # Test that email count is now 1
+        self.assertEqual(self.email_sender_logger.email_delivery_count, 1)
+                
+        self._send_email_helper()
+        
+        # Test that email count is now 2
+        self.assertEqual(self.email_sender_logger.email_delivery_count, 2)
+    
+    def tearDown(self):
+        self.email_sender_logger = create_email_logger_instance(EmailSenderConstants, EmailSender.create())
+   

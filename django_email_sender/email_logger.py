@@ -2218,7 +2218,6 @@ class EmailSenderLogger:
         self._log_message(EmailLogSummary.BOTTOM_LINE)
         self._log_message(EmailLogSummary.SPACE)
                 
-
         self._log_message(FieldSummaryLog.END_SUMMARY)
         self._log_message(EmailLogSummary.SPACE)
         self._log_message(EmailLogSummary.SPACE)

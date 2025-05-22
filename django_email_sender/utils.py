@@ -14,7 +14,6 @@ from bs4 import BeautifulSoup
 from django_email_sender.translation import translate_message
 
 
-
 def get_template_dirs():
     """
     Retrieves the paths for the template directories used by the application.
