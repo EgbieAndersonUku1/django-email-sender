@@ -2292,6 +2292,19 @@ You **must** have both an `.html` and `.txt` version of the email template. Thes
 
 📁 EmailSender allows you to easily configure the location of template directories used by the app, including email templates. By default, `EmailSender` will look for templates in a `templates` folder inside the base directory of your project. However, if you'd like to customize the location, you can do so using the `MYAPP_TEMPLATES_DIR` setting in your Django project's `settings.py`.
 
+
+### Using with `django-auth-recovery-codes`
+
+`django-email-sender` can be used alongside `django-auth-recovery-codes`. The recovery-code package uses the `MYAPP_TEMPLATES_DIR` configuration to specify the location of its package-provided email templates.
+
+However, when both packages are used within the same application, the recovery-code package's email template location will override the application's configured email template path.
+
+This will prevent the application's own email templates from being resolved correctly.
+
+The two packages work as expected when used independently. This is a current configuration conflict when they are used together.
+
+
+
 [🔝 Back to top](#table-of-contents)
 
 ---
