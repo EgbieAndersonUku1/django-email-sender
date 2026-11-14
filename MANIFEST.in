@@ -1,18 +1,26 @@
+
 include README.md
-include LICENSE
+include LICENCE
 include requirements.txt
 include setup.py
 include CHANGELOG.md
 
+# Include Python package source files
 recursive-include django_email_sender *.py
+
+# Include documentation source files
 recursive-include docs *
+
+# Exclude generated Sphinx documentation
+recursive-exclude docs/_build *
+
+# Include translations and tests
 recursive-include locale *
 recursive-include tests *.py
 
 # Include any egg-info metadata
 recursive-include django_email_sender.egg-info *
 
-# Include all text and markdown files in the root
+# Include root-level text and Markdown files
 include *.txt
 include *.md
-include CHANGELOG.md

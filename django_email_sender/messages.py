@@ -20,7 +20,7 @@ class BaseFormatter:
             return msg.format(**kwargs)
         except (IndexError,  KeyError):
             return msg
-          
+
     def list_messages(self) -> dict:
         """
         Returns a dictionary of all message keys and their string values.
@@ -75,6 +75,9 @@ class EmailMessages(BaseFormatter):
     MULTIPLE_RECIPIENTS               : str = _("Multiple recipients provided: {to_email}. | category=EMAIL | action=MULTIPLE_RECIPIENTS")
     SINGLE_RECIPIENT                  : str = _("Single recipient 'set': {to_email}. | category=EMAIL | action=SINGLE_RECIPIENT")
     SUBJECT_LINE                      : str = _("Email subject: '{subject}'. | category=EMAIL | action=SUBJECT")
+    IDEMPOTENCY_KEY                   : str = _("Idempotency key: '{idempotency_key}'. | category=EMAIL | action=IDEMPOTENCY_KEY")
+    DUPLICATE_IDEMPOTENCY_KEY         : str = _("Duplicate idempotency key detected: '{idempotency_key}'. Skipping email send. | category=EMAIL | action=IDEMPOTENCY_DUPLICATE")
+    INVALID_IDEMPOTENCY_KEY           : str = _("Idempotency key validation failed for '{idempotency_key}': {error}. | category=EMAIL | action=IDEMPOTENCY_INVALID")
     EMAIL_FORMAT                      : str = _("Email format: multipart/alternative (HTML + plain text). | category=EMAIL | action=EMAIL_FORMAT")
     HTML_TEMPLATE_USED                : str = _("HTML template used: '{html_template_path}'. | category=EMAIL | action=TEMPLATE_HTML")
     TEXT_TEMPLATE_USED                : str = _("Text template used: '{text_template_path}'. | category=EMAIL | action=TEMPLATE_TEXT")
@@ -88,7 +91,7 @@ class EmailMessages(BaseFormatter):
     START_DB_SAVE                     : str = _("Attempting to save to the database... | category=EMAIL | action=DATABASE_START")
     FAILED_TO_START_DB_SAVE           : str = _("Failed to start database save. sender='{class_name}', model='{log_model}', processed='{processed}'. | category=EMAIL | action=DATABASE_FAILED")
     MISSING_EMAIL_FIELDS              : str = _("'Subject' : {subject}, 'from_email' {from_email}, 'to_email' {to_email} | category=EMAIL | action=MISSING_FIELDS")
-    
+
     def __str__(self) -> str:
         return _("EmailMessages: A collection of email operation-related message templates.")
 
@@ -135,9 +138,9 @@ class FieldSummaryLog:
 class EnvironmentSettings:
     DEVELOPMENT: str = _("Development")
     PRODUCTION: str = _("Production")
-    
-    
-    
+
+
+
 # ────────────────────────────────
 # Email class names
 # ────────────────────────────────
@@ -146,7 +149,7 @@ class EmailClassNames:
     EMAILSENDER: str      = _("EmailSender")
     EMAIL_BASE_MODEL: str = _("EmailBaseLog")
     EMAIL_MODEL: str      = _("EmailLog")
-    
+
 
 # ────────────────────────────────
 # Email Status
@@ -433,4 +436,4 @@ class DebugMessages(BaseFormatter):
             return message.format(**kwargs)
         except (IndexError, KeyError):
             return message
-    
+

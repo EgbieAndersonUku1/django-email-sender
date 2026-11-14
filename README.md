@@ -1,12 +1,48 @@
 [![Downloads](https://static.pepy.tech/badge/django-email-sender)](https://pepy.tech/project/django-email-sender)
-[![PyPI version](https://img.shields.io/pypi/v/django-email-sender/2.0.5.svg?color=blue)](https://pypi.org/project/django-email-sender/2.0.0/)
+[![PyPI version](https://shields.io)](https://pypi.org/project/django-email-sender/)
+
 
 📚 **Documentation**: [View the full documentation here](https://django-email-sender.readthedocs.io/en/latest/)
 
-
-# 📧 Django Email Sender Version 2
+# 📧 Django Email Sender — v2.1.0
 
 Django Email Sender is a lightweight and highly customisable utility for sending emails in Django using rich templates and a clean, chainable API.
+
+---
+
+## What's New in v2.1.0
+
+Version **2.1.0** introduces **idempotency key support for both `EmailSender` and `EmailSenderLogger`**, extends the automated test coverage, improves field resetting, and updates Python 3.13 compatibility handling.
+
+### 🔑 Idempotency keys for `EmailSender` and `EmailSenderLogger`
+
+Have you ever had an email task retry after a timeout and wondered whether the original email was already sent? Version 2.1.0 gives you a way to attach a consistent identifier to each *logical email operation*.
+
+Both classes now support the chainable method:
+
+```python
+.with_idempotency_key("order-confirmation:123")
+```
+
+- **`EmailSender`** accepts a `str` or `uuid.UUID` and attaches its string representation to the outgoing **`X-Idempotency-Key`** header.
+- **`EmailSenderLogger`** exposes the same method, forwards the key to its underlying sender, and makes the key available in its JSON payload for inspection, logging, or integration with your application's persistence layer.
+- **Validation** rejects unsupported types with `InvalidIdempotencyKey`.
+- **Retry-friendly metadata** lets your application associate multiple attempts with the same operation by reusing the same key.
+
+**Please note:** An idempotency key is *metadata*, not automatic deduplication. Django Email Sender does **not** store previously used keys or stop duplicate sends. If your application must avoid duplicate emails, it needs to implement its own durable, concurrency-safe duplicate-detection policy. See [Idempotency Keys (v2.1.0+)](#-idempotency-keys-v210) for detailed examples with both classes.
+
+### 🧪 Additional automated tests
+
+The v2.1.0 test coverage includes the new idempotency behaviour for **both** classes, including string and UUID keys, invalid inputs, outgoing headers, logger payload visibility, and related sending behaviour. The latest reported run completed **20 tests successfully** on **Python 3.13.13 / Django 5.2.1**. See [Running Tests](#running-tests) for the command and coverage notes.
+
+### 🧼 Field-reset and logging improvements
+
+- Corrected the `clear_all_fields()` reset path, including the behaviour used when `send(auto_reset=True)` clears sender state.
+- Improved logger error formatting and payload-related behaviour.
+
+### 🐍 Python 3.13 and type validation
+
+Updated package metadata and type-validation helpers, including handling for union and generic annotations. The declared Python range is **3.10–3.13**; the reported v2.1.0 test run used **Python 3.13.13**. Other declared Python/Django combinations have not been verified by that run.
 
 ---
 
@@ -14,39 +50,48 @@ Django Email Sender is a lightweight and highly customisable utility for sending
 
 Version 2.0 brings powerful new features that make your email workflows smarter and more robust:
 
-- ✅ **Email Delivery Tracking**  
+- ✅ **Email Delivery Tracking**
   Get immediate feedback on whether an email was sent successfully or failed, with access to error messages if something goes wrong.
 
-- 🔁 **Field Management (Preserve/Clear)**  
+- 🔁 **Field Management (Preserve/Clear)**
   Fine-grained control over email fields—clear or preserve specific fields even after setting them.
 
-- 📝 **Logging and Database Integration**  
+- 📝 **Logging and Database Integration**
   Easily hook into your logging system to record email activity—log to file, console, or even a database.
 
-
-- 🔧 **New method introduced to Chainable API**  
+- 🔧 **New method introduced to Chainable API**
   Enhanced method chaining to improve developer ergonomics and reduce boilerplate.
 
 ---
 
 ## ✨ Features
 
-- Rich HTML and plain text templates  
-- Chainable email building methods  
+- Rich HTML and plain text templates
+- Chainable email building methods
+- Idempotency key headers and payload visibility for retry-aware workflows (v2.1.0+)
 - Custom function to format your logging
 - Additional methods for fine grain control (v2.0+)
-- Logging and database integration (v2.0+)  
+- Logging and database integration (v2.0+)
 - i18n support (v2.0+)
 
 ---
 
 ## 🧾 Changelog
 
+### v2.1.0
+
+- 🔑 **Added `.with_idempotency_key()` to both `EmailSender` and `EmailSenderLogger`.** Supports string and UUID keys, adds the `X-Idempotency-Key` header, and exposes the key in the logger's JSON payload. Duplicate suppression remains application-managed.
+- 🧪 **Expanded tests for both classes**, covering idempotency validation, header behaviour, payload visibility, and existing sending behaviour. The reported local run passed all **20 tests**.
+- 🧼 **Fixed `clear_all_fields()`**, including field resetting during `send(auto_reset=True)`.
+- 📝 **Improved logger error formatting** and related metadata handling.
+- 🐍 **Updated Python 3.13 support** and validation of union/generic type annotations.
+- 📚 **Expanded documentation** with idempotency usage examples, retry considerations, and test guidance.
+
 ### v2.0
 
-- Added support for logging (file/database)  
-- Added delivery status tracking with error feedback  
-- Introduced methods to clear or preserve fields dynamically  
+- Added support for logging (file/database)
+- Added delivery status tracking with error feedback
+- Introduced methods to clear or preserve fields dynamically
 - Improved documentation and method chaining flexibility
 - Ability to get metadata for a sent email
 - See you payload before or after your email has been set
@@ -72,6 +117,7 @@ It provides a clean, reusable, and chainable utility class for sending emails in
 - [🧼 Code Style Tips](#code-style-tips)
 - [🚀 Installation via PyPI](#installation-via-pypi)
 - [🧩 Requirements](#requirements)
+- [🧪 Running Tests](#running-tests)
 - [📝 Logger and Database Integration](#logger-and-database-integration)
 - [📝 How to configure the Logger](#how-to-configure-the-logger)
 - [🔑 Enabling the Logger](#enabling-the-logger)
@@ -87,6 +133,7 @@ It provides a clean, reusable, and chainable utility class for sending emails in
 - [🛠️ Setting up an advanced logger](#setting-up-an-advanced-logger)
 - [📝 Reuse the Logger and Formatter Across Multiple Emails](#reuse-the-logger-and-formatter-across-multiple-emails)
 - [🔄 Resetting or Reusing the Instance Cleanly](#resetting-or-reusing-the-instance-cleanly)
+- [🔑 Idempotency Keys (v2.1.0+)](#-idempotency-keys-v210)
 - [📧 HTML Email Template Example](#html-email-template-example)
 - [📝 Plain Text & Multi-part Email Support](#plain-text--multi-part-email-support)
 - [🧱 Subclassing](#subclassing)
@@ -101,106 +148,110 @@ It provides a clean, reusable, and chainable utility class for sending emails in
 
 
 
-## Why Use This? 
+## Why Use This?
 
-While Django already provides a way to send emails, it can become verbose and repetitive. `EmailSender` abstracts the boilerplate and lets you send templated emails fluently.
+Django's built-in email utilities are flexible, but applications often repeat the same steps: select templates, render dynamic context, set recipients and headers, and handle errors. **Django Email Sender** brings these steps together in a fluent, reusable API.
+
+Use `EmailSender` when you want to build and send HTML and plain-text templated messages with minimal setup. Choose `EmailSenderLogger` when you also want optional application logging, payload inspection, delivery-status information, or database-backed email records.
+
+**What's different in v2.1.0?** You can associate an email attempt with an idempotency key, making it easier to trace retries and integrate with your own duplicate-detection workflow. The key is metadata, not a built-in guarantee of exactly-once delivery.
 
 [🔝 Back to top](#table-of-contents)
 
 
 ## Upgrading from Version 1
 
-Version 2 introduces powerful new features — with **zero breaking changes**. Your current integration will continue to work as expected!
+Version 2 introduces new logging and field-management features. Review the migration notes and test your integration when upgrading.
 
 ### What is New in Version 2:
 
-- ✅ **Integrated Logging & Database Support**  
+- ✅ **Integrated Logging & Database Support**
   Log email activity to a file or database with customisable logging levels (`debug`, `info`, `warning`, `error`).
 
-- 🧼 **Advanced Field Management**  
-  - Auto-reset fields after sending  
-  - Clear specific fields or all fields  
+- 🧼 **Advanced Field Management**
+  - Auto-reset fields after sending
+  - Clear specific fields or all fields
   - Preserve chosen fields across sends
 
-- 📋 **Selective Logging with Inclusion/Exclusion Rules**  
+- 📋 **Selective Logging with Inclusion/Exclusion Rules**
   Choose exactly which fields to log (`log only`) and which to exclude (`log exclude`) — giving you full control over what gets logged.
 
-- 📊 **Custom Log Range**  
+- 📊 **Custom Log Range**
   Define a log range to specify precisely what data is captured in logs, improving privacy and debugging clarity.
 
-- 🧠 **Smarter Error Handling**  
+- 🧠 **Smarter Error Handling**
   Now with field-level and error messages for easier debugging and localisation.
 
 ---
 
-**✅ No breaking changes** — Drop-in upgrade, full backwards compatibility.
+**Compatibility note:** Some APIs changed across v2.x. In v2.1.0, `EmailSender.to()` still accepts a list for backward compatibility, but uses only its first address.
 
 ## 📦 What’s New in Version 2 cont'd?
 
-Version 2 of Django Email Sender brings major upgrades while maintaining full backwards compatibility. It’s smarter, more flexible, and much more powerful.
+Version 2 of Django Email Sender adds optional logging, field management, and database integration. Review the documented API before upgrading.
 
-- 📝 **Custom Logger Integration**  
-  - Plug in your own logger for full control over log output and formatting.  
-  - Easily inherit from the base abstract model to create a custom log model.  
+- 📝 **Custom Logger Integration**
+  - Plug in your own logger for full control over log output and formatting.
+  - Easily inherit from the base abstract model to create a custom log model.
   - Save logs to the database or file via the `EmailLogger` integration.
 
-- 🔄 **Auto-Reset After Sending**  
+- 🔄 **Auto-Reset After Sending**
   Automatically reset all email fields after sending with `auto_reset=True` to prevent accidental resends.
 
-- 📌 **Preserve Specific Fields**  
+- 📌 **Preserve Specific Fields**
   Use `preserve_fields` to retain selected fields even after an auto-reset.
 
-- 🧼 **Individual Field Clearing**  
+- 🧼 **Individual Field Clearing**
   Clear only what you need with new methods like `clear_subject()`, `clear_context()`, `clear_to()`, and more.
 
-- ⚙️ **Inclusion/Exclusion Logging**  
+- ⚙️ **Inclusion/Exclusion Logging**
   Choose exactly which fields to log (`log_only`) and which to exclude (`log_exclude`) for fine-grained control.
 
-- 📊 **Custom Log Range**  
+- 📊 **Custom Log Range**
   Define a logging range to specify precisely what data is logged, improving privacy and audit clarity.
 
 
-- 🗂 **EmailSenderLogger Class**  
+- 🗂 **EmailSenderLogger Class**
   A dedicated logger class to manage logging behaviour, output types, and integration points.
 
-- 🧰 **More Utility Methods**  
-  Version 2 introduces several new helper methods to simplify template handling, payload inspection, metadata access, and more.  
+- 🧰 **More Utility Methods**
+  Version 2 introduces several new helper methods to simplify template handling, payload inspection, metadata access, and more.
   _Check the full documentation for all available methods and usage examples._
 
 
 ## Features
 
-- 🛠️ **Custom logger integration**  
+- 🛠️ **Custom logger integration**
   Plug in your own logger for full control over log formatting and output. Easily log email activities to files or databases.
 
-- 🗂️ **Database logging support**  
+- 🗂️ **Database logging support**
   Integrate email logs directly into your database via the `EmailLogger`, with easy-to-configure log models.
 
-- 🔗 **Chainable API**  
+- 🔗 **Chainable API**
   Fluent, easy-to-use API for configuring email attributes — e.g., `.to()`, `.from_address()`, `.subject()`, `.context()`, etc.
 
-- 🔄 **Auto-reset**  
+- 🔄 **Auto-reset**
   Automatically reset all fields after sending an email, keeping your instance clean for reuse.
 
-- 🧼 **Field clearing and preservation**  
+- 🧼 **Field clearing and preservation**
   Clear individual fields (e.g., subject, recipients, templates) or preserve them between email sends.
 
-- 🧼 **logging including inclusion/exclusion**  
- Chose what fields you would like to log (e.g., subject, recipients, templates) 
+- 🧼 **logging including inclusion/exclusion**
+ Chose what fields you would like to log (e.g., subject, recipients, templates)
 
-- 📨 **HTML and plain text templates**  
+- 📨 **HTML and plain text templates**
   Send both HTML and plain-text emails with rich template support for flexibility.
 
-- 🧩 **Lightweight & easy integration**  
+- 🧩 **Lightweight & easy integration**
   Simple to integrate into any Django project without unnecessary complexity.
 
-- 🧱 **Clean architecture & folder structure**  
+- 🧱 **Clean architecture & folder structure**
   Encourages good code practices with reusable components and clear folder organization.
 
-- 🧬 **Subclassing & functional abstractions**  
+- 🧬 **Subclassing & functional abstractions**
   Extensible through subclassing or functional abstractions for maximum flexibility.
 
-- 🧪 **Testable and extendable**  
+- 🧪 **Testable and extendable**
   Designed with testability in mind, making it easy to write unit and integration tests.
 
 
@@ -219,22 +270,21 @@ Version 2 of Django Email Sender brings major upgrades while maintaining full ba
 
 # Without auto-reset and custom logger (classic usage)
 from django_email_sender.email_sender import EmailSender
-  (
-   EmailSender.create() 
-    .from_address("no-reply@example.com") 
-    .to(["test@example.com"]) 
-    .with_subject("Welcome Email") 
-    .with_context({"username": "John"}) 
-    .with_html_template("welcome.html", folder_name="welcome") 
-    .with_text_template("welcome.txt", folder_name="welcome") 
+
+response_count, is_sent = (
+    EmailSender.create()
+    .from_address("no-reply@example.com")
+    .to("test@example.com")
+    .with_subject("Welcome Email")
+    .with_context({"username": "John"})
+    .with_html_template("welcome.html", folder_name="welcome")
+    .with_text_template("welcome.txt", folder_name="welcome")
     .send()
-  )
+)
 
 ```
 
 ### 🚀 Version 2 — Demo: Custom Logger & Database Logging
-```python
-## 
 
 ```python
 import logging
@@ -440,27 +490,29 @@ Unless you explicitly opt-in to the enhanced features (e.g., by starting a loggi
 Method Description
 
 ### EmailSender methods
-```markdown
 
- - create()                                                                                    
- - from_address(email)                                                                        
- - to(recipients)                                                                            
- - with_subject(subject)                                                                     
- - with_context(context)                                                                     
- - with_text_template(folder_name="folder-name-here", template_name="template-name-here.txt")  
- - with_html_template(folder_name="folder-name-here", template_name="template-name-here.html") 
- - with_headers(headers) 
- - clear_from_email()       #  Added in version 2 
- - clear_to_email()         #  Added in version 2 
- - clear_subject()          #  Added in version 2 
- - clear_context()          #  Added in version 2 
- - clear_to_email()         #  Added in version 2 
- - clear_html_template()    #  Added in version 2     
- - clear_text_template()    #  Added in Version 2     
- - clear_from_email()       #  Added in Version 2 
- - clear_all_fields()       #  Added in Version 2                                   
- - send()
+```text
+- create()
+- from_address(email)
+- to(recipients)
+- with_subject(subject)
+- with_context(context)
+- with_text_template(template_name, folder_name="emails_templates")
+- with_html_template(template_name, folder_name="emails_templates")
+- with_headers(headers)
+- with_idempotency_key(idempotency_key)  # Added in v2.1.0; str or uuid.UUID
+- clear_from_email()                   # Added in v2.0
+- clear_to_email()                     # Added in v2.0
+- clear_subject()                      # Added in v2.0
+- clear_context()                      # Added in v2.0
+- clear_html_template()                # Added in v2.0
+- clear_text_template()                # Added in v2.0
+- clear_all_fields()                   # Added in v2.0
+- send(auto_reset=False)
 ```
+
+`with_idempotency_key()` attaches the key to the outgoing `X-Idempotency-Key` header. It does **not** automatically detect or prevent duplicate sends; that responsibility belongs to the consuming application. The method is available on both `EmailSender` and `EmailSenderLogger`.
+
 
 [🔝 Back to top](#table-of-contents)
 
@@ -471,73 +523,110 @@ Method Description
 > **Factory method** — Instantiates and returns an `EmailSender` object.
 
 #### 📤 `from_address(email)`
-> **Sets the sender's email address**.  
+> **Sets the sender's email address**.
 > `email`: A string representing the sender's email (e.g. `noreply@yourdomain.com`).
 
 #### 📥 `to(recipients)`
-> **Sets the recipient(s) of the email**.  
+> **Sets the recipient(s) of the email**.
 > `recipients`: A string or list of strings with one or more email addresses.
 
 
-> New in version 2, no longer accepts a list. Use `.add_new_recipient()` to add multiple recipients
+> In v2.1.0, `EmailSender.to()` accepts a string or list for backward compatibility. Only the first address in a non-empty list is used. Use `.add_new_recipient()` for additional recipients.
 ```python
-    from django_email_sender.email_sender import EmailSender
+from django_email_sender.email_sender import EmailSender
 
-    # instantialize the Email sender
-    email_sender = EmailSender.create()
+sender = (
+    EmailSender.create()
+    .from_address("no-reply@example.com")
+    .to("user@example.com")
+    .with_subject("Welcome")
+    .with_context({"username": "John"})
+    .with_text_template("welcome.txt", folder_name="emails")
+    .with_html_template("welcome.html", folder_name="emails")
+)
 
-    email_sender.from_address(from_email)
-                .to(user.email)  
-                    .with_subject(subject)
-                    .with_context({"username": 'John'})
-                    .with_text_template(text_registration_path, folder_name="emails")
-                    .with_html_template(html_registration_path, folder_name="emails")
-                    .send()
-                    .clear_subject() # Clears the subject field from the chain
-
-   # or it can be cleared directly from the instant method
-   email_sender.clear_subject()
+response_count, is_sent = sender.send()
+sender.clear_subject()
 ```
 
-> **Note**  
-> The `.to(...)` method accepts either a single email string or a list of email addresses.  
-> However, the list format is supported **only for backwards compatibility**.  
-> If you pass a list like `["first_email@example.com", "second_email@example.com"]`, **only the first email (`"first_email@example.com"`) will be used**.  
->  
-> ⚠️ **Important:** Passing a list only works when using `EmailSender`.  
+> **Note**
+> The `.to(...)` method accepts either a single email string or a list of email addresses.
+> However, the list format is supported **only for backwards compatibility**.
+> If you pass a list like `["first_email@example.com", "second_email@example.com"]`, **only the first email (`"first_email@example.com"`) will be used**.
+>
+> ⚠️ **Important:** Passing a list only works when using `EmailSender`.
 > If you're using `EmailSenderLogger`, passing a list will raise an error. In that case, always pass a single string email address to `.to(...)`.
 >
-> To add multiple recipients, use the `.add_new_recipient()` method instead.  
+> To add multiple recipients, use the `.add_new_recipient()` method instead.
 >
 > ⚠️ Do **not** use `.to(...)` to add multiple emails — it will **overwrite** the `to_email` field rather than append to it.
 
 
 #### 📝 `with_subject(subject)`
-> **Sets the subject line of the email**.  
+> **Sets the subject line of the email**.
 > `subject`: A string for the email's subject.
 
 #### 🔧 `with_context(context)`
-> **Provides the context dictionary for rendering templates**.  
+> **Provides the context dictionary for rendering templates**.
 > `context`: Optional. A dictionary containing variables that can be used in both HTML and text templates. This method is only necessary if your templates require dynamic content (variables) to be rendered.
 
 #### 📄 `with_text_template(folder_name="folder-name-here", template_name="template-name-here.txt")`
-> **Specifies the plain text template**.  
+> **Specifies the plain text template**.
 > If `folder_name` is omitted, defaults to `emails_templates/`.
 
 #### 🌐 `with_html_template(folder_name="folder-name-here", template_name="template-name-here.html")`
-> **Specifies the HTML version of the email template**.  
+> **Specifies the HTML version of the email template**.
 > If `folder_name` is omitted, defaults to `emails_templates/`.
 
 #### 🧾 `with_headers(headers)`
-> **Optional method to add custom email headers**.  
+> **Optional method to add custom email headers**.
 > `headers`: A dictionary of headers (e.g. `{"X-Custom-Header": "value"}`).
+
+#### 🔑 `with_idempotency_key(idempotency_key)`
+
+**New in version 2.1.0.**
+
+**Associates an outgoing email with an application-defined operation key.** This optional, chainable method is available on `EmailSender` and `EmailSenderLogger`.
+
+| Detail | Behaviour |
+| --- | --- |
+| Parameter | `idempotency_key: str | uuid.UUID` |
+| Returns | The sender instance (`self`) for chaining |
+| Header | `X-Idempotency-Key` when the stored key is non-empty |
+| Invalid input | Raises `InvalidIdempotencyKey` for other types |
+| Deduplication | **Not performed by DjangoEmailSender** |
+
+The method converts the key to a string and stores it on the instance. During `send()`, the key is added to the email headers if it is truthy. A UUID is accepted directly. An empty string passes the current type check but does not produce a header; prefer non-empty keys.
+
+```python
+from uuid import uuid4
+from django_email_sender.email_sender import EmailSender
+
+# Persist or otherwise retain this key for retries of the SAME operation.
+operation_key = str(uuid4())
+
+sender = (
+    EmailSender.create()
+    .from_address("noreply@example.com")
+    .to("customer@example.com")
+    .with_subject("Your order confirmation")
+    .with_context({"order_id": 12345})
+    .with_text_template("confirmation.txt", folder_name="orders")
+    .with_html_template("confirmation.html", folder_name="orders")
+    .with_idempotency_key(operation_key)
+)
+
+response, is_sent = sender.send()
+```
+
+A second call to `.send()` with the same key is **not automatically blocked**. The consuming application must decide whether and when to retry or skip a send. See [Idempotency Keys](#-idempotency-keys-v210) for the rationale, logger example, and application responsibilities.
 
 #### ✂️ `clear_subject()`
 > Clears the subject field to its default empty value. This method is optional and can be called as part of a method chain.  It's only relevant if the object has been instantiated and used as a chain. Calling this method clears the subject field without affecting other fields in the chain.
 
 
 #### 🧳 `clear_context()`
-**New in version 2.** 
+**New in version 2.**
 > Clears the context field to its default empty value. This method is optional and can be called as part of a method chain. It's only relevant if the object has been instantiated and used as a chain. Calling this method clears the context field without affecting other fields in the chain
 
 ```python
@@ -560,7 +649,7 @@ Method Description
 ```
 
 #### 📨 `clear_to_email()`
-**New in version 2.** 
+**New in version 2.**
 > Clears the recipient field to its default empty value. This method is optional and can be called as part of a method chain. It's only relevant if the object has been instantiated and used as a chain. Calling this method clears the recipient field without affecting other fields in the chain.
 
 ```python
@@ -584,7 +673,7 @@ Method Description
 ```
 
 #### 📨 `clear_from_email()`
-**New in version 2.** 
+**New in version 2.**
 > Clears the sender email field to its default empty value. This method is optional and can be called as part of a method chain. It's only relevant if the object has been instantiated and used as a chain. Calling this method clears the sender email field without affecting other fields in the chain
 
 ```python
@@ -608,7 +697,7 @@ Method Description
 ```
 
 #### 🧑‍💻 `clear_html_template()`
-**New in version 2.** 
+**New in version 2.**
 > Clears the HTML template field to its default empty value. This method is optional and can be called as part of a method chain. It's only relevant if the object has been instantiated and used as a chain. Calling this method clears the HTML template field without affecting other fields in the chain.
 
 
@@ -629,11 +718,11 @@ Method Description
 
 
    # or it can be cleared directly from the instant method
-  email_sender.clear_html_template()  
+  email_sender.clear_html_template()
 ```
 
 #### 📝 `clear_text_template()`
-**New in version 2.** 
+**New in version 2.**
 > Clears the text template field to its default empty value. This method is optional and can be called as part of a method chain. It's only relevant if the object has been instantiated and used as a chain. Calling this method clears the text template field without affecting other fields in the chain.
 
 
@@ -654,12 +743,12 @@ Method Description
 
 
    # or it can be cleared directly from the instant method
-  email_sender.clear_text_template() 
+  email_sender.clear_text_template()
 ```
 
 
 #### 🔄 `clear_all_fields()`
-**New in version 2.** 
+**New in version 2.**
 >Clears all fields to their default empty values. This method is optional and can be called as part of a method chain. It's only relevant if the object has been instantiated and used as a chain. Calling this method clears all fields without affecting the rest of the method chain or the logger if added.
 
 
@@ -668,7 +757,7 @@ Method Description
 
     # instantialize the Email sender
     email_sender = (
-            
+
         EmailSender.create()
         email_sender.from_address(from_email)
                     .to(user.email)
@@ -681,16 +770,18 @@ Method Description
     )
 
    # or it can be cleared directly from the instant method
-  email_sender.clear_all_fields()   
+  email_sender.clear_all_fields()
 ```
 
 #### 📬 `send(auto_reset=False)`
 
 > **Sends the email** using the provided configuration and templates.
 
-> **Optional parameters** 
-  **New in version 2.** 
-> > **auto_reset** If set to True, all fields will be cleared after the email is sent. Default is False.`
+> **Optional parameters**
+  **New in version 2.**
+> > **auto_reset** If set to `True`, fields are cleared after `msg.send()` returns normally, including when the backend reports zero messages sent. Default is `False`.
+
+**Return value:** A tuple `(resp, is_sent)`, where `resp` is the integer returned by Django’s email backend and `is_sent` is `resp > 0`. This indicates backend acceptance, not guaranteed delivery to the recipient’s inbox. **Implementation note:** Update the Python `send()` return annotation and docstring to match this tuple; the current code declares `-> int`.
 
 ---
 
@@ -710,13 +801,13 @@ Method Description
 ---
 
 #### 📥 `to(recipients)`
-> The ability to add multiple recipients via a list has been **removed** and **replaced** with `add_new_recipient`.  
-> This method now only accepts a string. To add multiple recipients use `add_new_recipient` method 
+> The ability to add multiple recipients via a list has been **removed** and **replaced** with `add_new_recipient`.
+> This method now only accepts a string. To add multiple recipients use `add_new_recipient` method
 
 ---
 
 #### 📥 `add_new_recipient(recipient)`
-> **New in version 2.**  
+> **New in version 2.**
 > Accepts a string and adds it to the set of recipients. To add multiple recipients, call this method repeatedly. The method uses a set to ensure that recipient names are unique.
 
 
@@ -733,19 +824,55 @@ Method Description
 ---
 
 #### 📄 `with_text_template(folder_name, template_name)`
-> Specifies the plain text template to use.  
+> Specifies the plain text template to use.
 > If `folder_name` is omitted, defaults to `emails_templates/`.
 
 ---
 
 #### 🌐 `with_html_template(folder_name, template_name)`
-> Specifies the HTML version of the email template.  
+> Specifies the HTML version of the email template.
 > If `folder_name` is omitted, defaults to `emails_templates/`.
 
 ---
 
 #### 📑 `with_headers(headers)`
 > Optional method to add custom email headers (as a dictionary).
+
+---
+
+#### 🔑 `with_idempotency_key(idempotency_key)`
+
+**New in version 2.1.0.**
+
+> Attaches an application-defined identifier to an outgoing email. Accepts a `str` or `uuid.UUID`, converts it to a string, and forwards it to the underlying `EmailSender`. The key is added to the `X-Idempotency-Key` header when the email is sent. `EmailSenderLogger` also includes the key in its payload.
+
+> Raises `InvalidIdempotencyKey` for unsupported types. Returns the `EmailSenderLogger` instance for chaining.
+
+```python
+import json
+import uuid
+from django_email_sender.email_logger import EmailSenderLogger
+from django_email_sender.email_sender import EmailSender
+
+operation_key = uuid.uuid4()  # Reuse the same key if retrying this operation.
+
+email_logger = (
+    EmailSenderLogger.create()
+    .add_email_sender_instance(EmailSender.create())
+    .from_address("no-reply@example.com")
+    .to("user@example.com")
+    .with_subject("Order confirmation")
+    .with_context({"order_id": 12345})
+    .with_text_template("order.txt")
+    .with_html_template("order.html")
+    .with_idempotency_key(operation_key)
+)
+
+email_logger.send()
+print(json.loads(email_logger.payload)["idempotency_key"])
+```
+
+**Note:** The key is metadata for tracing and application-level deduplication; DjangoEmailSender does not check for previously used keys or suppress duplicate sends. Your application may use an `EmailOutbox` or another persistence mechanism to enforce its own policy. See [Idempotency Keys](#-idempotency-keys-v210) for further examples.
 
 ---
 
@@ -760,7 +887,7 @@ Method Description
 
 #### Logger Configuration
 
-🧾 To customise how and at what level email sending is logged, use the `config_logger()`. The levels can be added manually or used with `LoggerType` constants provided. 
+🧾 To customise how and at what level email sending is logged, use the `config_logger()`. The levels can be added manually or used with `LoggerType` constants provided.
 
 
 ```python
@@ -783,7 +910,7 @@ Method Description
 ---
 
 #### 🗃 `add_log_model(log_model: EmailBaseLog)`
-> Attaches a custom model for database email logging.  
+> Attaches a custom model for database email logging.
 > The model provided must inherit from the `abstract` base model `EmailBaseLog`
 > The module path : `from django_email_sender.models import EmailBaseLog`
 
@@ -822,10 +949,10 @@ Method Description
 
 Use the following methods to manage logging dynamically during the email sending flow.
 
-#### [`start_logging_session()`](#start_logging_session) 🔓  
-> Starts the logging session and returns `self` for chaining.  
-> Useful if you want to enable logging partway through your workflow.  
->  
+#### [`start_logging_session()`](#start_logging_session) 🔓
+> Starts the logging session and returns `self` for chaining.
+> Useful if you want to enable logging partway through your workflow.
+>
 > **Note:** If a logger has been added, you **must** call this method — otherwise, no information will be logged, and you’ll see the following output in your logs:
 
 ```plaintext
@@ -838,17 +965,17 @@ Use the following methods to manage logging dynamically during the email sending
 
 ---
 
-#### [`stop_logging_session()`](#stop_logging_session) 🔒  
+#### [`stop_logging_session()`](#stop_logging_session) 🔒
 > Completely disables further logging and ends the session.
 
 ---
 
-#### [`pause_logging()`](#pause_logging) ⏸️  
+#### [`pause_logging()`](#pause_logging) ⏸️
 > Temporarily pauses logging without clearing state.
 
 ---
 
-#### [`resume_logging()`](#resume_logging) ▶️  
+#### [`resume_logging()`](#resume_logging) ▶️
 > Resumes logging after a `pause_logging()` call.
 
 
@@ -858,12 +985,12 @@ Use the following methods to manage logging dynamically during the email sending
 ---
 
 #### 🔢 `email_delivery_count` (Property)
-> Returns the number of successfully delivered emails in the current session.
+> Returns the count of emails reported as sent by the configured backend; this does not guarantee inbox delivery.
 
 ---
 
 #### 📦 `payload` (Property)
-> Returns the email payload dictionary. Useful for auditing and testing.
+> Returns a JSON string representing the email payload. Use `json.loads(email_logger.payload)` to inspect it as a dictionary.
 
 ---
 
@@ -873,7 +1000,7 @@ Use the following methods to manage logging dynamically during the email sending
 ---
 
 #### 🧮 `return_successful_payload()` (Not chainable)
-> Returns a *copy* of the `_field_changes` dictionary, which logs what fields were changed and when.  
+> Returns a *copy* of the `_field_changes` dictionary, which logs what fields were changed and when.
 > This ensures the original audit trail remains unmodified.
 
 ---
@@ -881,11 +1008,11 @@ Use the following methods to manage logging dynamically during the email sending
 ### 🧠 set_traceback(show_traceback: bool, method_tracing: bool = False )
 > method_tracing: show exactly which methods were called during your email building process, `set_traceback()` is your friend. It provides a step-by-step breakdown of the chained method calls that lead up to sending an email. Note, this must be set to `True`, default is `False`
 > show_traceback: shows you a traceback error including the point where the error originated.
-   
----    
+
+---
 
 #### 🛑 `log_only_fields(*fields)`
-> Restricts logging to specific fields (e.g., only `subject` or `to`).  
+> Restricts logging to specific fields (e.g., only `subject` or `to`).
 > Useful for minimising log verbosity.
 
 ---
@@ -923,7 +1050,7 @@ Use the following methods to manage logging dynamically during the email sending
 Instead of hardcoding strings like `"from_email"` or `"subject"` when specifying fields, use the enums for safer, auto-completable references.
 
 ⚠️ **Note:** These enums must be used with `.value`, as they are instances of `Enum`. This can then be passed in
-`methods` like `exclude_fields_from_logging` or `log_until_field` 
+`methods` like `exclude_fields_from_logging` or `log_until_field`
 
 ---
 
@@ -941,6 +1068,7 @@ Instead of hardcoding strings like `"from_email"` or `"subject"` when specifying
 | `EmailSenderConstants.Fields.HEADERS`           | `"headers"`          | Optional custom email headers                      |
 | `EmailSenderConstants.Fields.LIST_OF_RECIPIENT` | `"list_of_recipients"` | A list of recipient email addresses             |
 | `EmailSenderConstants.Fields.EMAIL_ID`          | `"email_id"`         | Unique identifier for the email instance           |
+| `EmailSenderConstants.Fields.IDEMPOTENCY_KEY` | `"idempotency_key"` | Key associated with an email operation for retry tracking and application-managed deduplication |
 
 
 📊 Logging-specific use (with EmailSenderLogger)
@@ -956,7 +1084,9 @@ email_sender_with_logging.exclude_fields_from_logging(
 
 ```
 
-This approach ensures consistency across your codebase and provides a single source of truth for all field and method references related to EmailSender and EmailSenderLogger.= "add_new_recipient"
+This approach ensures consistency across your codebase and provides a single source of truth for field references used by `EmailSender` and `EmailSenderLogger`.
+
+
 
 
 [🔝 Back to top](#table-of-contents)
@@ -974,6 +1104,7 @@ This approach ensures consistency across your codebase and provides a single sou
 | `with_text_template(...)`      | Method  | ✅         | Attach plain text template                       | Both                 |
 | `with_html_template(...)`      | Method  | ✅         | Attach HTML template                             | Both                 |
 | `with_headers(headers)`        | Method  | ✅         | Add custom headers                               | Both                 |
+| `with_idempotency_key(key)`   | Method  | ✅         | Attach an `X-Idempotency-Key` header (v2.1.0+)   | Both                 |
 | `send(auto_reset=False, ...)`  | Method  | ❌         | Sends the email                                  | Both                 |
 | `clear_subject()`              | Method  | ✅         | Clears the subject field                         | Both                 |
 | `clear_context()`              | Method  | ✅         | Clears the context dictionary                    | Both                 |
@@ -1018,7 +1149,7 @@ This approach ensures consistency across your codebase and provides a single sou
 | `to_warning()`                 | Method  | ✅         | Changes the level to warning                      | `EmailSenderLogger`  |
 | `to_error()`                   | Method  | ✅         | Changes the level to error                        | `EmailSenderLogger`  |
 
-   
+
 #### **Properties and Metadata**
 
 | Name                           | Type      | Chainable | Description                                      | Defined In           |
@@ -1034,9 +1165,9 @@ This approach ensures consistency across your codebase and provides a single sou
 ### **Explanation of Categories:**
 
 - **Core Functions**: The main email sending functionality, like setting recipients, subject, context, templates, headers, and clearing fields.
-  
+
 - **Database Access**: Methods that deal with interacting with a database, logging email details, saving email meta data, and configuring the logger.
-  
+
 - **Logging and Verbose Functions**: Methods that manage the logging session, verbosity, and custom log formatting.
 
 - **Properties and Metadata**: Methods that return properties related to the email state, including whether it was sent, the delivery count, and email metadata.
@@ -1076,17 +1207,19 @@ This method is cleaner, more readable, and less error-prone:
 
 ```python
 
-   
+
    # Assume that you passed in a user class
 
-    EmailSender.create()
-    .from_address(from_email)
-    .to([user.email])
-    .with_subject(subject)
-    .with_context({"username": user.username})
-    .with_text_template(text_registration_path, folder_name="emails")
-    .with_html_template(html_registration_path, folder_name="emails")
-    .send()
+    response_count, is_sent = (
+        EmailSender.create()
+        .from_address(from_email)
+        .to(user.email)
+        .with_subject(subject)
+        .with_context({"username": user.username})
+        .with_text_template(text_registration_path, folder_name="emails")
+        .with_html_template(html_registration_path, folder_name="emails")
+        .send()
+    )
 
 ```
 [🔝 Back to top](#table-of-contents)
@@ -1109,9 +1242,37 @@ For more details, visit [the PyPI page](https://pypi.org/project/django-email-se
 [🔝 Back to top](#table-of-contents)
 
 
+## Running Tests
+
+**New in version 2.1.0 documentation.**
+
+If you are working on the DjangoEmailSender source code, run the project's test runner from the repository root (the directory containing `runtests.py`):
+
+```bash
+python runtests.py
+```
+
+Make sure the project's development/test dependencies are installed first. The runner may require Django test settings or other project-specific configuration; refer to `runtests.py` for the exact setup.
+
+The idempotency tests in `test_email_sender.py` and `test_email_logger.py` cover:
+
+- String and UUID keys, including conversion of UUIDs to strings.
+- `InvalidIdempotencyKey` for unsupported input types.
+- The `X-Idempotency-Key` header on outgoing emails, and omission of the header when no key is set.
+- The key appearing in `EmailSenderLogger`'s JSON payload.
+- Existing sending behaviour, including the `(response, is_sent)` return value and `auto_reset=True` for core email fields.
+
+**Suggested additional regression tests:** Verify that two sends using the same key are both attempted (deduplication is not built in), and check whether `clear_all_fields()` resets `idempotency_key` before asserting that behaviour. These additional checks are recommendations, not claims about tests already present.
+
+**Latest reported local test run (2026-11-13):** 20 tests passed on Python 3.13.13 and Django 5.2.1.
+
+[🔝 Back to top](#table-of-contents)
+
+---
+
 ## Requirements
 
-- **Python 3.10+**  
+- **Python 3.10–3.13** (declared in `setup.py`; the test run reported for v2.1.0 used Python 3.13.13).
   This library uses [Structural Pattern Matching](https://docs.python.org/3/whatsnew/3.10.html#structural-pattern-matching), introduced in Python 3.10, via the `match`-`case` syntax.
 
 ### Why Python 3.10?
@@ -1137,14 +1298,18 @@ def log_level_handler(level: str) -> str:
 This syntax is not available in versions prior to Python 3.10, so attempting to run the library on an earlier version will raise a `SyntaxError`.
 
 
-- Dependencies:  
+- Dependencies:
   List of required dependencies (install with `pip install -r requirements.txt`)
 
 ## Compatibility
 
-This package has been tested against Django 5.2 (the latest version at the time of release) and is known to work with versions 3.2 and above.
+**Verified test environment for v2.1.0:** Python 3.13.13 and Django 5.2.1 (20 unit tests passed).
 
-⚠️ **Compatibility with Django 6.x and beyond is not yet guaranteed.** If you're using a future version, proceed with caution and consider opening an issue if anything breaks.
+**Declared dependency range in `setup.py`:** `Django>=3.2,<6.0`. This permits older Django versions on compatible Python versions, but the v2.1.0 test run reported here does **not** establish compatibility with Django 3.2, 4.x, or 5.0–5.1. Support for those combinations needs separate testing.
+
+**Python requirement:** `>=3.10,<3.14`. Python 3.10–3.12 have not been verified by the reported test run.
+
+**Django 6.x is excluded** by the current `Django<6.0` package requirement.
 
 
 [🔝 Back to top](#table-of-contents)
@@ -1176,7 +1341,7 @@ The `config_logger` method is entirely optional. You only need to call it if you
 
 To enable logging, you must also call:
 
-- **`start_logging_session()`**  
+- **`start_logging_session()`**
    This ensures that logging starts. Without calling this, the logger will not log anything.
 
 This setup gives you full flexibility:
@@ -1186,10 +1351,10 @@ This setup gives you full flexibility:
 - `EmailSender` adapts to your needs — whether you prefer a fully monitored pipeline or a fast, lightweight send.
 
 
-###  How to configure the Logger 
+###  How to configure the Logger
 
-🔗 Once the user has configured a logger, it can be passed using the `config_logger` chain method.  
-Use `LoggerType` to minimise errors and ensure consistency across your implementation.  
+🔗 Once the user has configured a logger, it can be passed using the `config_logger` chain method.
+Use `LoggerType` to minimise errors and ensure consistency across your implementation.
 See [Logger Configuration](#logger-configuration) for a full list of supported types and usage examples.
 
 The parameters available for `config_logger` are:
@@ -1236,9 +1401,9 @@ def my_custom_formatter(exception: Exception, trace: str) -> str:
 # Step 3: Use the logger with EmailSender
 
   email_sender = (
-      
+
       EmailSenderLogger.create().start_logging_session()
-    
+
          .enable_verbose()
          .config_logger(logger, LoggerType.DEBUG) # logger added
          .add_email_sender_instance(EmailSender.create())
@@ -1249,7 +1414,7 @@ def my_custom_formatter(exception: Exception, trace: str) -> str:
          .with_html_template("test_email.html")
          .with_text_template("test_email.txt")
          .send()
-    
+
 )
 
 ```
@@ -1260,7 +1425,7 @@ def my_custom_formatter(exception: Exception, trace: str) -> str:
 | :-- | :-- |
 | **1** | We create a simple logger using Python’s built-in `logging` module. |
 | **2** | (Optional) We define a `custom_formatter` for formatting error messages. If defined set it using `set_custom_formatter` |
-| **3** | We chain `set_logger()` with other `EmailSender` methods like `to(...)`, `with_subject(...)`, `with_context(...)`, and finally `send()`. |
+| **3** | We chain `config_logger()` with other `EmailSenderLogger` methods such as `to(...)`, `with_subject(...)`, and `send()`. |
 
 
 ---
@@ -1269,7 +1434,7 @@ def my_custom_formatter(exception: Exception, trace: str) -> str:
 
 ###  Enabling the Logger
 
-🔒 By default, even if you've configured your logger using methods such as `config_logger()` or ` **logging will not begin until you explicitly call** `start_logging_session()`. This ensures that there is no accidental logging unless you want to log.
+🔒 By default, configuring a logger with `config_logger()` does not start a logging session. **Logging begins only after you explicitly call** `start_logging_session()`.
 
 If you forget to call `start_logging_session()`, the system will inform you through repeated debug messages like the following:
 
@@ -1285,7 +1450,7 @@ If you forget to call `start_logging_session()`, the system will inform you thro
 To fix this, ensure you call the following after your logger setup:
 
 ```python
-.start_logging_session() 
+.start_logging_session()
 ```
 
 ✅ **Tip:** You can stop the session anytime with `stop_logging_session()` or temporarily pause it with `pause_logging()` and `resume_logging()`.
@@ -1312,7 +1477,7 @@ If your logs are not being recorded or saved even after calling `config_logger()
 
 If you have set up a custom logger or formatter setup and plan to send multiple emails, **you don't need to set them up every single time**.
 
-Instead, you can **set them once** when you create an instance of `EmailSenderLogger`, then **reuse the same instance** to send all your emails.  
+Instead, you can **set them once** when you create an instance of `EmailSenderLogger`, then **reuse the same instance** to send all your emails.
 
 This way:
 - Your logger and formatter stay attached to the instance.
@@ -1333,7 +1498,7 @@ To avoid this, you have two options:
 2. **Manually clear specific fields**: Call the appropriate `clear_<field_name>` method (e.g., `clear_subject()`, `clear_context()`, `clear_all_fields()`, etc.) to reset only the fields you need.
 
 
-### 🚀 Example Usage 
+### 🚀 Example Usage
 #### The example focuses on using the `auto_reset` flag to clear the fields but this can be done using the corresponding clear_<field_name> method
 
 ```python
@@ -1368,7 +1533,7 @@ email_sender = EmailSenderLogger.create().config_logger(
 )
 
 # Example 3 - Send email 3
-# Since `auto_reset` wasn't set in Example 2, and the user is not overriding the fields, the `welcome.html` and `welcome.txt` templates 
+# Since `auto_reset` wasn't set in Example 2, and the user is not overriding the fields, the `welcome.html` and `welcome.txt` templates
 # will be used for the third email, even though the subject ("Import Account Information") doesn't match the templates.
 # This mismatch will result in the recipient receiving an email with irrelevant content.
 # To avoid this issue, you should either manually clear the fields or use `auto_reset=True` to ensure a clean state.
@@ -1406,7 +1571,7 @@ But if you're only sending 1–2 emails each time, it's easier to just create a 
   - **Logging configuration**: You can configure your logger with handlers, formats, and levels as needed via the `settings.py`
   which can be overriden when using `EmailSenderLogger`
 
-✅ Easy for beginners  
+✅ Easy for beginners
 ✅ Powerful for advanced users
 
 ---
@@ -1417,14 +1582,14 @@ But if you're only sending 1–2 emails each time, it's easier to just create a 
 
 🧭 If you ever wanted to know exactly which methods were called during your email building process, `set_traceback()` is your friend. It provides a step-by-step breakdown of the chained method calls that lead up to sending an email.
 
-#### This is especially useful for debugging complex chains, understanding the flow, or simply verifying that everything is working in the expected order. 
+#### This is especially useful for debugging complex chains, understanding the flow, or simply verifying that everything is working in the expected order.
 
 ### Why Use Method Tracing?
 
 When working with complex chains of method calls or deeply nested logic, it can be difficult to understand the exact flow of execution. Method tracing provides a powerful way to gain visibility into what's happening under the hood.
 
-- **Debug complex chains** with greater ease  
-- **Understand execution flow** step-by-step  
+- **Debug complex chains** with greater ease
+- **Understand execution flow** step-by-step
 - **Verify correct method ordering and dependencies**
 
 ### Enabling chain tracing
@@ -1438,7 +1603,7 @@ Chain tracing is only shown at the `debug level` and when `enable_verbose` mode 
 
 ### Here's how it works:
 
-1. **Method Chain Tracking**  
+1. **Method Chain Tracking**
    The method chain begins from the initial call (e.g., `create()`) and continues through all chained methods like `to()`, `with_subject()`, and so on. Each method gets logged in real-time.
 
 ### ⚙️ Behind the Scenes (Optional Detail for Power Users)
@@ -1473,11 +1638,11 @@ Each arrow (`→`) represents a method call in your builder chain. This gives yo
 
 ---
 
-2. **Verbose Debugging**  
+2. **Verbose Debugging**
    If `show_traceback=True` is enabled, **stack trace information is included** in the logs when an error happens. This includes:
    - The sequence of method calls leading to the error.
    - Detailed information about the error (e.g., the specific line number, method name, and error message).
-   
+
    This allows you to track back to the root cause of an issue quickly and effectively.
 
 ### Example of an error traceback:
@@ -1591,7 +1756,7 @@ email_sender = (
 
 ## Setting up an advanced logger
 
-In the above example we set up a very limited logger that doesn't involve the user configure the `settings.py` file, however that 
+In the above example we set up a very limited logger that doesn't involve the user configure the `settings.py` file, however that
 logger has several limited.
 
 ⚠️ Limitations:
@@ -1662,7 +1827,7 @@ Now create a `utils.py` file (or choose a name that suits your project) inside y
 ```python
 
 # -------------------------------------------------------------------
-# utils.py  
+# utils.py
 #--------------------------------------------------------------------
 import logging
 
@@ -1671,7 +1836,7 @@ class RightIndentedFormatter(logging.Formatter):
         super().__init__(fmt, datefmt, style)
 
     def format(self, record):
-        
+
         # Add a custom indent to the beginning of the log message
         original_message = super().format(record)
         return f"    {original_message}"  # 4 spaces or any amout of space you want
@@ -1722,7 +1887,7 @@ You can initialise a logger and attach it to `EmailSenderLogger` to record activ
 ```python
 
 EmailSenderLogger.create().config_logger(
-    logger=logger, 
+    logger=logger,
     log_level=LoggerType.ERROR
 )
 
@@ -1755,7 +1920,7 @@ EmailSenderLogger.create()
 ## 🔹 Third Approach
 ### `.exclude_fields_from_logging(*fields)`
 
-Sometimes, you might want to log *everything except* certain fields.  
+Sometimes, you might want to log *everything except* certain fields.
 The `.exclude_fields_from_logging()` method allows you to omit specific fields from being recorded in your logs.
 
 This is especially useful when logging sensitive data such as emails or templates, or just to reduce noise.
@@ -1888,15 +2053,15 @@ email_sender = (
 ---
 
 **Key points**
-    
+
     - Provides advanced way to log or monitor or your data
 
-    - Allows you to log or exclude fields 
+    - Allows you to log or exclude fields
 
     - Allows you to an `end point` where it can then run up to
-    
+
     - Does not force you to use these advanced featues, you can just as easily set up with `config_logger` and let run or use no logger at all
-    
+
     - It is easier for beginners to use and allows `advanced` users more control over their logging
 
 [🔝 Back to top](#table-of-contents)
@@ -1910,7 +2075,7 @@ This report captures a comprehensive summary of the email sending process—incl
 
 ```plaintext
 [2025-05-08 06:49:56,758] INFO     email_sender : [________________________________________________________________________
-[2025-05-08 06:49:56,758] INFO     email_sender : [                                                                        
+[2025-05-08 06:49:56,758] INFO     email_sender : [
 [2025-05-08 06:49:56,758] INFO     email_sender : [      '**Email Sent Process Summary Logs**']
 [2025-05-08 06:49:56,758] INFO     email_sender : [________________________________________________________________________
 [2025-05-08 06:49:56,758] INFO     email_sender : [Email ID                          : '8679bf20ada7055179feefc730305e28d8070b2844e74b6152b83a6aa3f3e205'
@@ -1963,7 +2128,7 @@ This report captures a comprehensive summary of the email sending process—incl
 
 # models.py
 
-from django_email_sender.models import EmailBaseLog 
+from django_email_sender.models import EmailBaseLog
 
 class CustomEmailLog(EmailBaseLog):
     # Optional: Add custom fields
@@ -1993,8 +2158,8 @@ from "your-app".models import CustomEmailLog
 
 email_sender = ( EmailSenderLogger.create().start_logging_session()
                 .add_log_model(CustomEmailLog)    # customEmailLog
-                .enable_email_meta_data_save()    # enable saving to the 
-                
+                .enable_email_meta_data_save()    # enable saving to the
+
                 # Rest of the code here .
                 # .....
                 .send()
@@ -2010,19 +2175,219 @@ email_sender = ( EmailSenderLogger.create().start_logging_session()
 
 ### Payload Inspection
 
-`EmailSenderLogger` provides structured access to the **full email payload** in json via the `.payload` property. 
+`EmailSenderLogger` provides structured access to the **full email payload** in json via the `.payload` property.
 
 This enables developers to **inspect**, **log**, or **persist** detailed data related to any email being sent. The payload is **dynamically constructed**, allowing you to access and inspect it either **after sending the email** or **as you build each field** during the setup process.
 
+## 🔑 Idempotency Keys (v2.1.0+)
+
+### Why use an idempotency key?
+
+Imagine a registration request that triggers a welcome email. The request times out, so a background worker retries it. Without a way to identify the original operation, your application may send the same welcome message twice.
+
+An **idempotency key** identifies the *logical email operation* across attempts. In v2.1.0, `.with_idempotency_key()` accepts a `str` or `uuid.UUID`, converts it to a string, and attaches it as the `X-Idempotency-Key` email header. With `EmailSenderLogger`, the key is also available in the email payload.
+
+> **Important:** A header and a logged key alone do **not** block duplicate emails. The supplied `send()` implementation does not store keys, check previous sends, or perform atomic deduplication. To prevent duplicates, your application needs a durable, concurrency-safe record of processed keys (or another documented deduplication mechanism). Email delivery itself may still have uncertain outcomes after a timeout.
+
+### Example: `EmailSender`
+
+```python
+from uuid import uuid4
+from django_email_sender.email_sender import EmailSender
+
+# Generate once for this logical operation; reuse on retries.
+operation_key = str(uuid4())
+
+(
+    EmailSender.create()
+    .from_address("noreply@example.com")
+    .to("customer@example.com")
+    .with_subject("Welcome!")
+    .with_context({"username": "Alex"})
+    .with_text_template("welcome.txt", folder_name="welcome")
+    .with_html_template("welcome.html", folder_name="welcome")
+    .with_idempotency_key(operation_key)
+    .send()
+)
+```
+
+For example, a retry of the *same registration operation* should reuse `operation_key`, not call `uuid4()` again. A genuinely new registration or email operation should use a new key.
+
+### Example: `EmailSenderLogger` and payload inspection
+
+```python
+import json
+from uuid import UUID
+from django_email_sender.email_sender import EmailSender
+from django_email_sender.email_logger import EmailSenderLogger
+
+operation_key = UUID("12345678-1234-5678-1234-567812345678")
+
+sender = (
+    EmailSenderLogger.create()
+    .add_email_sender_instance(EmailSender.create())
+    .from_address("noreply@example.com")
+    .to("customer@example.com")
+    .with_subject("Your receipt")
+    .with_text_template("receipt.txt", folder_name="receipts")
+    .with_idempotency_key(operation_key)
+)
+
+# The logger wrapper exposes a payload for inspection.
+payload = sender.payload
+print(json.loads(payload)["idempotency_key"])
+
+sender.send()
+```
+
+The `EmailSenderLogger` example does not configure a Python logger or database model: those are optional, separate features. The current tests access `payload` as a JSON string and decode it with `json.loads()`. See [Logger and Database Integration](#logger-and-database-integration) if you want persistent records.
+
+### Example: stable keys across task retries
+
+Use a stable operation identifier from your application instead of generating a new UUID every time a task runs. The example below demonstrates **key reuse**, not automatic duplicate suppression:
+
+```python
+from django_email_sender.email_sender import EmailSender
+
+def send_order_confirmation(order):
+    # Stable across attempts for this specific order-confirmation operation.
+    operation_key = f"order-confirmation:{order.pk}"
+
+    return (
+        EmailSender.create()
+        .from_address("noreply@example.com")
+        .to(order.customer.email)
+        .with_subject("Order confirmation")
+        .with_context({"order_id": order.pk})
+        .with_text_template("confirmation.txt", folder_name="orders")
+        .with_html_template("confirmation.html", folder_name="orders")
+        .with_idempotency_key(operation_key)
+        .send()
+    )
+```
+
+If the task runs twice, this code can send two emails. Your application must check and coordinate its own processed-operation records **before** invoking the sender if duplicate suppression is required.
+
+### Accepted values and errors
+
+The setter validates the input type only; it does not check uniqueness or whether the string is empty. An empty string is accepted by the setter, but because `send()` uses `if self.idempotency_key:`, it will not add the header for an empty key.
+
+
+| Input | Behaviour |
+| --- | --- |
+| `"registration:123"` | Accepted as a string key |
+| `uuid.uuid4()` | Accepted and converted to a string |
+| Other types | Raise `InvalidIdempotencyKey` |
+
+Use a key that is stable for retries of the same logical operation, unique across different operations, and safe to include in an email header or log. Avoid embedding passwords, tokens, or sensitive personal data.
+
+### How should you choose an idempotency key?
+
+An idempotency key should describe **one email operation**, rather than one execution attempt. For example:
+
+| Email operation | Example key | When to reuse it |
+| --- | --- | --- |
+| Welcome email for a new account | `welcome-email:user-42` | Retry of that same welcome email |
+| Order confirmation | `order-confirmation:order-123` | Retry of that order confirmation |
+| Invoice notification | `invoice-notification:invoice-456` | Retry of that invoice notification |
+
+These values are **illustrative application-defined identifiers**, not formats enforced by the library. Use non-sensitive identifiers and consider whether a repeated operation should have its own new key (for example, a second legitimate invoice reminder).
+
+### What happens when the same key is used twice?
+
+The key travels with the email as a header, and the logger wrapper can expose it in its payload. **Both sends can still be attempted.** The package does not compare keys across calls or persist them between processes.
+
+For duplicate prevention, your Django application might keep a database record keyed by the logical operation, coordinate concurrent workers, and decide when to mark an operation complete. A failed or timed-out send may have an uncertain delivery outcome, so your retry policy should account for that uncertainty.
+
+### Inspecting the logger payload
+
+`EmailSenderLogger.payload` is a **JSON string**, not a Python dictionary. Decode it before reading the key:
+
+```python
+import json
+
+# After configuring an EmailSenderLogger instance with an idempotency key:
+payload_data = json.loads(sender.payload)
+print(payload_data["idempotency_key"])
+```
+
+The `sender` variable above refers to the configured `EmailSenderLogger` instance from the earlier example.
+
+### Tests covering idempotency
+
+The v2.1.0 test suite includes `test_email_sender.py` and `test_email_logger.py`. These tests verify:
+
+- `EmailSender` accepts a UUID or string key, rejects invalid types with `InvalidIdempotencyKey`, and attaches `X-Idempotency-Key` to a sent message.
+- An email sent without a configured idempotency key has no `X-Idempotency-Key` header.
+- `EmailSenderLogger.with_idempotency_key()` returns the logger instance for chaining, forwards the stringified key to its underlying sender, and exposes the key in the JSON-decoded `payload`.
+- The sender returns `(resp, is_sent)` and supports `auto_reset=True` for the core email fields checked by the tests.
+
+The existing tests **do not** test repeated sends, automatic duplicate suppression, concurrency control, or persistent idempotency records; those are intentionally outside the package's current responsibilities. They also do not establish whether `auto_reset=True` clears the idempotency key itself.
+
+### Suggested regression tests (optional)
+
+These small tests can be added to `TestEmailSender` in `test_email_sender.py`. They document the intended contract: keys are carried with outgoing messages, but repeated sends are **not** automatically suppressed.
+
+```python
+def test_same_idempotency_key_allows_repeated_sends(self):
+    """The caller, not DjangoEmailSender, decides whether to skip retries."""
+    first_count, first_sent = self.sender.send()
+    second_count, second_sent = self.sender.send()
+
+    self.assertEqual((first_count, first_sent), (1, True))
+    self.assertEqual((second_count, second_sent), (1, True))
+    self.assertEqual(len(mail.outbox), 2)
+    for message in mail.outbox:
+        self.assertEqual(
+            message.extra_headers["X-Idempotency-Key"],
+            str(self.idempotency_key),
+        )
+```
+
+The existing `test_auto_reset_clears_fields_after_sending()` can also check the key's reset behaviour:
+
+```python
+# Add after self.sender.send(auto_reset=True), provided clear_all_fields()
+# is intended to clear the idempotency key as well:
+self.assertIsNone(self.sender.idempotency_key)
+```
+
+**Note:** The second assertion is a *proposed test*, not yet confirmed by the shared implementation or tests. Check `clear_all_fields()` first. If the key is deliberately preserved, document and test that behaviour instead. Neither snippet has been executed here.
+
+### Application-owned `EmailOutbox` (optional pattern)
+
+A consuming Django application might define its own `EmailOutbox` model with a **unique** `idempotency_key`, an email type, recipient, payload, status, timestamps, and attempt count. The application would then decide when an operation should be sent, retried, or skipped. This is **an architectural example, not a model shipped by DjangoEmailSender**.
+
+A typical flow is:
+
+1. The application creates or retrieves an `EmailOutbox` record using a stable key, such as `order-confirmation:12345`.
+2. Its worker claims the record using appropriate database constraints/locking so concurrent workers do not both send it.
+3. The worker calls `EmailSender.with_idempotency_key(outbox.idempotency_key)` and sends the email.
+4. The application records the result and applies its own retry policy if sending fails or the outcome is uncertain.
+
+A unique constraint alone is **not** enough: the application also needs to coordinate worker claims and handle failures between sending the message and updating its database. Even with an outbox, SMTP delivery cannot generally be guaranteed exactly once. This approach keeps storage, retention, retries, and business-specific deduplication outside DjangoEmailSender.
+
+### How duplicate prevention fits in
+
+**Design principle: the package supplies the key; the consuming application owns the policy.** This avoids requiring DjangoEmailSender users to adopt a specific database, cache, lock, expiration policy, or retry strategy.
+
+
+For true duplicate suppression, the application (or a verified package feature) must check a persisted key before sending and coordinate concurrent attempts. A simple read-then-send check is not sufficient to prevent two workers from sending simultaneously. For critical workflows, consider a transactional outbox or a uniquely constrained operation record, and explicitly define how failed or uncertain deliveries are retried.
+
+[🔝 Back to top](#table-of-contents)
+
+---
 
 ### ✅ What the Payload Includes:
-- `from_email` → Email address of the sender  
-- `to_email` → List or string of recipient addresses  
-- `subject` → Subject line of the email  
-- `body_html` → HTML version of the message  
-- `body_text` → Plain-text version of the message  
-- `context` → Context dictionary used to render the template  
-- `headers` → Any custom headers attached to the message  
+- `from_email` → Email address of the sender
+- `to_email` → List or string of recipient addresses
+- `subject` → Subject line of the email
+- `body_html` → HTML version of the message
+- `body_text` → Plain-text version of the message
+- `context` → Context dictionary used to render the template
+- `headers` → Any custom headers attached to the message
+- `idempotency_key` → Key used to identify related send attempts (or `None` if not set); it does not itself prevent duplicate sends
+
 
 ### ⚠️ Why This Method Is Not Chainable
 
@@ -2037,17 +2402,17 @@ This design ensures developers have **immediate access** to the email data when 
 ```python
 payload = email_sender.payload
 print(payload)
-# {
-#   "from_email": "admin@example.com",
-#   "to_email": ["user@example.com"],
-#   "subject": "Welcome to Our Platform",
-#   "body_html": "full/path/to/html/template/",
-#   "body_text": "full/path/to/text/template/",
-#   "context": {"username": "john_doe"},
-#   "headers": {"X-Custom-Header": "value"}
+{
+  "from_email": "admin@example.com",
+  "to_email": ["user@example.com"],
+  "subject": "Welcome to Our Platform",
+  "body_html": "full/path/to/html/template/",
+  "body_text": "full/path/to/text/template/",
+  "context": {"username": "john_doe"},
+  "headers": {"X-Custom-Header": "value"}
 
-
-or 
+}
+or
 
 # use the data somewhere in your application
 
@@ -2231,7 +2596,7 @@ def send_verification_email(user):
 def send_registration_email(user):
     html_registration_path = "registration/registration.html"
     text_registration_path = "registration/registration.txt"
-    
+
     subject = "Welcome to the Platform!"
     from_email = "no-reply@example.com"
 
@@ -2325,7 +2690,7 @@ Where:
 
 ### Customizing the Template Directory Path
 
-If you'd like to customize the template directory location, you can define the `MYAPP_TEMPLATES_DIR` setting in your `settings.py` file. 
+If you'd like to customize the template directory location, you can define the `MYAPP_TEMPLATES_DIR` setting in your `settings.py` file.
 
 ### Steps to Override:
 
@@ -2462,13 +2827,13 @@ DEFAULT_FROM_EMAIL   = EMAIL_HOST_USER  # Default email to send from
 ```
 
 Note replace
-  ``` 
+  ```
     - smtp.example.com with your-email@example.com
     - your-email-password with your actual email service provider's SMTP details
 
   ```
 
-If you are using gmail to send emails then the setup would look like 
+If you are using gmail to send emails then the setup would look like
 
 ```
     # Email Backend
@@ -2476,9 +2841,9 @@ If you are using gmail to send emails then the setup would look like
 
     # Email Settings for Gmail
 
-    EMAIL_USE_TLS        = True  
-    EMAIL_HOST           = 'smtp.gmail.com'  
-    EMAIL_PORT           = 587  
+    EMAIL_USE_TLS        = True
+    EMAIL_HOST           = 'smtp.gmail.com'
+    EMAIL_PORT           = 587
     EMAIL_HOST_USER      = 'your-email@gmail.com'  # Your Gmail address
     EMAIL_HOST_PASSWORD  = 'your-app-password'     # Use the generated app password (if 2FA is enabled)
     DEFAULT_FROM_EMAIL   = EMAIL_HOST_USER         # Optional: Set default sender email (same as the one above)
@@ -2701,7 +3066,7 @@ def test_email(request):
 
 ### 5. **Related folder names**
 
-- **Use the same `folder_name` for related templates (text and HTML):**  
+- **Use the same `folder_name` for related templates (text and HTML):**
   This keeps your project **organised**, **consistent**, and **easy to maintain**.
 
     ```plaintext
@@ -2743,14 +3108,14 @@ def test_email(request):
 
 ### 6. **Mixing Different Log Levels without Thought**
    - **Don’t randomly mix log levels** without a clear purpose. Choose a log level for each message carefully (`INFO`, `WARNING`, `ERROR`, etc.) to make your logs structured and easy to interpret.
-### 7. **Skipping the logger** 
+### 7. **Skipping the logger**
  - Skipping the logger and then struggling to debug when an email fails.
 
 ### 5. **Mixing unrelated templates together randomly:**
-- **Keeping related files in a different `folder_name`** 
-For example :  
+- **Keeping related files in a different `folder_name`**
+For example :
 This makes your project **messy**, **error-prone**, and **hard to maintain**.
-  
+
 
 
     ```plaintext
@@ -2770,7 +3135,7 @@ This makes your project **messy**, **error-prone**, and **hard to maintain**.
     │           └── welcome.txt
     ```
 
-- **Key issues:**  
+- **Key issues:**
   - Templates from different features (login, passwords, marketing) are **thrown together** with no clear separation.
   - Some templates are **floating randomly** without folders.
   - Backup files are mixed with production files.

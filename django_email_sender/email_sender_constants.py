@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass
 from enum import Enum
 from django.utils.translation import gettext_lazy as _
@@ -22,15 +23,16 @@ class EmailSenderConstants:
         HEADERS           = "headers"
         LIST_OF_RECIPIENT = "list_of_recipients"
         EMAIL_ID          = "email_id"
+        IDEMPOTENCY_KEY   = "idempotency_key"
 
         @classmethod
         def is_valid_field(cls, field_name: str) -> bool:
             """
             Check if the given field name is a valid field in the enum.
-            
+
             Args:
                 field_name (str): The name of the field to validate.
-            
+
             Returns:
                 bool: True if valid, False otherwise.
             """
@@ -48,6 +50,7 @@ class EmailSenderConstants:
         SEND          = "send"
         CREATE        = "create"
         ADD_RECIPIENT = "add_new_recipient"
+        IDEMPOTENCY_KEY = "with_idempotency_key"
 
 
 @dataclass(frozen=True)
@@ -101,7 +104,12 @@ def get_email_sender_param_contract():
         'ADD_RECIPIENT': {
              'method' : 'add_new_recipient',
              'params' : {'recipient': str}
+        },
+
+        'IDEMPOTENCY_KEY': {
+            'method': 'with_idempotency_key',
+            'params': {'idempotency_key': str | uuid.UUID},
         }
-        
-        
+
+
     }

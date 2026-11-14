@@ -8,7 +8,7 @@ from django_email_sender.utils import sanitize_for_json
 
 class EmailBase:
     def to_json(self):
-    
+
         email_payload_dict = asdict(self)
         cleaned_payload    = sanitize_for_json(email_payload_dict)
         return json.dumps(cleaned_payload, indent=4)
@@ -37,6 +37,7 @@ class EmailPayload(EmailBase):
     body_text: str
     context: dict
     headers: dict
+    idempotency_key: str | None = None
 
     def is_valid(self):
         """

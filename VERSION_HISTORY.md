@@ -1,121 +1,185 @@
-## ✅ VERSION\_HISTORY.md
+# 📦 Version History
 
+## 2.1.0 — 2026-11-13
 
-### 📦 Version History
+### ✨ Added
+
+- Added `.with_idempotency_key(idempotency_key)` to both `EmailSender` and `EmailSenderLogger`. It accepts a `str` or `uuid.UUID`.
+- When a non-empty idempotency key is provided, outgoing emails include the `X-Idempotency-Key` header. The key can be used by consuming applications to correlate retries and implement their own deduplication.
+- Added `idempotency_key` to `EmailPayload` and `EmailSenderConstants.Fields.IDEMPOTENCY_KEY` for logging and payload inspection.
+- Added Python 3.13 support (`python_requires=">=3.10,<3.14"`).
+
+### 🛠️ Improvements & Bug Fixes
+
+- Updated method-signature validation (`_types_match` and `validate_method_signature`) to handle Python 3.10+ union annotations (`str | uuid.UUID`), `Optional`, and `typing.Dict` generics.
+- Fixed `EmailSender.clear_all_fields()` to resolve `Fields` enum members through `.value`, including when `send(auto_reset=True)` is used.
+- Fixed error-message formatting in `EmailSenderLogger.with_idempotency_key()` for invalid argument types.
+- Fixed `EmailSenderLogger.payload` to include `idempotency_key` when `auto_reset=False`.
+- Removed a duplicate `key` dictionary entry from the idempotency-key parameter contract.
+- Fixed duplicate recipient addresses when the primary address was also added using `.add_new_recipient()`; the primary address remains first.
+
+### 📚 Documentation
+
+- Updated `README.md`, `usage.md`, `VERSION_HISTORY.md`, and `docs/index.md` for v2.1.0.
+- Verified that the Sphinx HTML documentation builds without warnings.
+
+### 🧪 Running Tests
+
+From the repository root, run:
+
+```bash
+python runtests.py
+```
+
+The latest reported local run passed 20 tests (2026-11-13).
+
+**Idempotency design note:** DjangoEmailSender attaches and logs idempotency keys; it does **not** store processed keys or suppress repeated sends. Applications can implement duplicate detection with their own `EmailOutbox` model, database uniqueness constraints, or other coordination mechanism.
+
+---
+
+## 2.0.5
+
+### Changed
+
+- Improved the `FIELD_HAS_BEEN_CLEARED` message to show the field name, previous value, and current value.
+- Centralized field-clearing logic in `_clear_and_log_field()` and updated `_log_field_cleared_message()`.
+
+### Fixed
+
+- Fixed a runtime error when calling `send()` without `auto_reset=True`.
+
+---
+
+## 2.0.3
+
+### Added
+
+- Restored backward compatibility for `EmailSender.to()` with a string or list. Only the first address in a non-empty list is used as the primary recipient; use `.add_new_recipient()` for additional addresses.
+
+### Documentation
+
+- Clarified recipient-list compatibility in `README.md`.
 
 ---
 
 ## 2.0.0 — 2025-05-11
 
 ### ✨ Major Changes
-- Introduced `EmailSenderLogger` class for advanced logging and optional database integration.
-- All core functionality is now chainable.
-- Added `.clear_to()`, `.clear_subject()`, and similar methods for better control over email state.
-- `.to()` now accepts a string (not a list); use `.add_new_recipient()` for multiple recipients.
-- Logging must now be explicitly started with `.start_logging_session()` to prevent unintentional logging.
-- To save to database even adding a custom model, you must call `.enable_email_meta_data_save()`, this ensures unintentional database entry
+
+- Introduced `EmailSenderLogger` for logging and optional database integration.
+- Expanded the chainable API, including field-clearing methods such as `.clear_subject()` and `.clear_to_email()`.
+- Updated `.to()` to accept a single email-address string while retaining list input for backward compatibility (only the first list item is used). Use `.add_new_recipient()` for additional recipients.
+- Made logging opt-in through `.start_logging_session()`.
+- Made database persistence opt-in through `.enable_email_meta_data_save()`, with `.add_log_model()` available for custom models.
 
 ### 🛠️ Improvements
-- Fielderror handling for missing fields and misconfiguration.
-- Email payload logging includes metadata, payload and summary.
-- Email tracking summary report
+
+- Improved error handling for missing fields and configuration problems.
+- Expanded email payload logging with metadata, payload details, and summaries.
+- Added email tracking summaries.
 
 ---
 
-## [1.10.2] - 2025-04-24
+## 1.10.2 — 2025-04-24
 
 ### Added
-- Updated `README.md` with clearer usage examples and PyPI download badge.
-- Added a content table for easier navigation.
-- Updated it with the new features added.
+
+- Improved `README.md` examples, added a PyPI download badge, and expanded the table of contents.
+- Updated documentation for newly introduced features.
 
 ### Changed
-- Minor formatting improvements in the documentation.
--
+
+- Made minor documentation and formatting improvements.
+
 ---
 
-
-
-## [1.10.0] - 2025-04-23
+## 1.10.0 — 2025-04-23
 
 ### Added
-- Introduced initial public release of `django-email-sender`.
-- Chainable API for sending rich HTML/text emails using Django templates.
-- Support for context injection, custom folders, and both plain and HTML email bodies.
 
-
----
-
-## 🔄 Migration Notes (Add to README or `MIGRATION.md`)
-
-
-### 🔄 Migrating from v1.x to v2.0.0
-
-The 2.0.0 release includes structural changes, new featues, database and logging integration, maintainability, etc. If you're upgrading, here’s what to update:
+- Initial public release of `django-email-sender`.
+- Chainable API for rich HTML and plain-text emails using Django templates.
+- Template context injection and support for custom template folders.
 
 ---
 
-### ✅ `EmailSender` Changes
-- `to()` now accepts a string:  
-  `EmailSender().to("user@example.com")`  
-  ✅ Old: `.to(["user@example.com"])` ❌
+## 🔄 Migration Notes
 
-- To send to multiple people, use `.add_new_recipient("email@example.com")`.
+### Migrating from v1.x to v2.0.0
 
-- You can now clear values with methods like `.clear_subject()` and `.clear_to()`.
+Version 2.0.0 introduced API changes, optional logging and database integration, and improved field management.
 
----
+#### `EmailSender` changes
 
-### ✅ Introducing `EmailSenderLogger`
-- Use this class if you want:
-  - Email sending logs
-  - Metadata and payload logging
-  - Optional database persistence
-  - Centralised logging configuration
-  - database integration
-  - logger integration
-  - Full report summary regarding email delivery
-  - Add custom formatter for error reporting
-
+**Recipient compatibility:** `.to()` accepts a string or a list of strings. For backward compatibility, a list is accepted but **only its first address is used**. Use `.add_new_recipient()` for additional recipients.
 
 ```python
-EmailSenderLogger(email_sender_instance)
+sender = EmailSender.create().to("user@example.com")
+```
+
+To add recipients, use `.add_new_recipient()`:
+
+```python
+sender = (
+    EmailSender.create()
+    .to("user@example.com")
+    .add_new_recipient("another@example.com")
+)
+```
+
+You can clear previously configured values with methods such as `.clear_subject()` and `.clear_to_email()`.
+
+#### Introducing `EmailSenderLogger`
+
+`EmailSenderLogger` provides optional email logging, payload inspection, custom logging configuration, summaries, and database persistence. To enable a logging session:
+
+```python
+email_logger = (
+    EmailSenderLogger.create()
+    .add_email_sender_instance(EmailSender.create())
     .start_logging_session()
+)
 
-    # ... additional fields here
-    .send()
-````
+# Configure the email fields and logger before calling .send().
+```
 
-* If you don’t need logging, just keep using `EmailSender` as before or use `EmailSenderLogger` powered with the instance of `EmailSender`.
+If you do not need logging, you can continue using `EmailSender` directly.
 
----
+#### Logging behaviour
 
-### ✅ Logging Behaviour
-
-* Logging is opt-in. To enable logging:
+Logging is opt-in. Call:
 
 ```python
 email_logger.start_logging_session()
 ```
 
-If omitted, log output will state:
+Without an active logging session, logger output is skipped. For details, see the README logging reference.
 
-```plaintext
-[Logger Not Enabled: Logger is not enabled. Skipping logging.]
-```
+#### Database behaviour
 
-### ✅ Database Behaviour
-
-* Database is opt-in. To enable dabase:
+Database persistence is also opt-in. If you use a custom log model, configure it and enable persistence:
 
 ```python
-email_logger.add_log_model(CustomLogModel)
-.enable_email_meta_data_save()
+email_logger = (
+    email_logger
+    .add_log_model(CustomLogModel)
+    .enable_email_meta_data_save()
+)
 ```
-If omitted, no metadata will be added to the database
 
+Without enabling database persistence, email metadata is not saved by this feature.
 
+### Migrating from v2.0.0 to v2.1.0
 
+No idempotency key is required for existing email-sending calls. To attach a key to a new send operation:
 
+```python
+import uuid
 
----
+operation_key = uuid.uuid4()
+
+sender = EmailSender.create().with_idempotency_key(operation_key)
+# Configure sender, recipients, subject and templates before calling .send().
+```
+
+Reuse the **same key** for retries of the same logical operation. DjangoEmailSender sends the header but does not perform duplicate detection; the consuming application is responsible for storing and checking keys when it needs that behaviour.

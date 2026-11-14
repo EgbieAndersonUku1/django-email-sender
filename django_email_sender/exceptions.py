@@ -5,7 +5,7 @@ class BaseException(Exception):
     """Base exception for all email sender errors with formatting and optional translation."""
 
     def __init__(self, message=None, *args, **kwargs):
-        self.original_message = message  
+        self.original_message = message
         self.format_args = args
         self.format_kwargs = kwargs
 
@@ -40,92 +40,90 @@ class BaseException(Exception):
 
 class EmailSenderBaseException(BaseException):
     """Base exception for EmailSender errors."""
-    pass
   
+
 class EmailSendError(BaseException):
     """Raised when an error occurs during sending an email"""
-    
-        
+
+
 class EmailNotSetError(BaseException):
     """Raised when an email is not sent."""
-    pass
+
 
 class TemplateDirNotFound(BaseException):
     """Exception raised when the template directory does not exist."""
-    pass
-   
+
+
 
 class EmailTemplateNotFound(BaseException):
     """Raised when a specific email template file is missing."""
-    pass
-    
-    
+
+
+
 class TemplateNotFound(BaseException):
     """Exception raised when a specific template file is missing."""
-    pass
 
-    
+
+
 class ContextIsNotADictionary(BaseException):
     """Raised when the context is not a dictionary"""
-    pass
+
 
 class ResetFieldsAttribruteError(BaseException):
     """Raised when the attribute of EmailSender is not found"""
-    pass
+
 
 class LoggerTypeError(BaseException):
     """Raised when an incorrect logger type is passed to EmailSender"""
-    pass
+
 
 
 class LoggerNotStartedError(BaseException):
     """Raised when the logger hasn't been startedr"""
-    pass
+
 
 
 class InvalidPayload(BaseException):
     """Raised when an invalid payload occurs"""
-    pass
 
 
 class InvalidMetadata(BaseException):
     """Raised when an invalid payload occurs"""
-    pass
+
 
 class LoggerNotAddedError(BaseException):
     """Raised when the logger hasn't been startedr"""
-    pass
 
 
 class IncorrectEmailSenderInstance(BaseException):
     """Raised when an incorrect email instance is added"""
-    pass
+
 
 
 class IncorrectLoggerLevelSettings(BaseException):
     """Raised when an incorrect email instance is added"""
-    pass
+
 
 
 class IncorrectEmailSenderFieldType(BaseException):
     """Raised when an incorrect email field type is added"""
-    pass
 
 
 class MissingFieldsInClass(BaseException):
     """Raised when a class contains missing fields"""
-    pass
+
 
 
 class IncorrectEmailModelAddedError(BaseException):
-    pass
+    """Raised when an incorrect email model is added"""
 
 class MethodNotFoundError(EmailSenderBaseException):
     """Raised when a method is not found in a given class"""
-    pass
-        
+
+
 class LoggerBaseException(EmailSenderBaseException):
     """"BaseException class that raised Errors"""
-    pass
-        
-    
+
+
+class InvalidIdempotencyKey(EmailSenderBaseException):
+    """Raised when an invalid Idempotency key is passed"""

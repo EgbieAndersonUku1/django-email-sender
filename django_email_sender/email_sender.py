@@ -1,4 +1,5 @@
 from __future__ import annotations
+import uuid
 
 from django.utils.translation import gettext_lazy as _
 from typing import List, Optional, Dict, Union
@@ -10,12 +11,13 @@ from secrets import token_hex
 
 from django_email_sender.exceptions import (
     EmailTemplateNotFound,
+    InvalidIdempotencyKey,
     TemplateDirNotFound,
     ContextIsNotADictionary,
     EmailSenderBaseException,
     EmailSendError,
     IncorrectEmailSenderFieldType,
-   
+
 )
 
 from django_email_sender.messages import TemplateMessages, EmailMessages, ContextMessages, FieldMessages
@@ -41,12 +43,12 @@ class EmailSender:
     To use it in a Django eco-system, the following settings must be configured:
 
     settings.py:
-    
+
     EMAIL_BACKEND       = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_USE_TLS       = True  
-    EMAIL_HOST          = 'host'  
-    EMAIL_PORT          = 587  
-    EMAIL_HOST_USER     = 'some@emailhere.com'  
+    EMAIL_USE_TLS       = True
+    EMAIL_HOST          = 'host'
+    EMAIL_PORT          = 587
+    EMAIL_HOST_USER     = 'some@emailhere.com'
     EMAIL_HOST_PASSWORD = 'password'
 
     templates:
@@ -54,11 +56,11 @@ class EmailSender:
 
     Example usages:
         You can easily abstract the `EmailSender` class into specific methods for sending different types of emails.
-        
+
         For example, to send a verification email:
-        
+
         def send_verification_email(user):
-        
+
             subject = "Verify Your Email"
             from_email = "no-reply@example.com"
 
@@ -67,7 +69,7 @@ class EmailSender:
                 .to([user.email])\
                 .with_subject(subject)\
                 .with_context({
-                    "username": user.username, 
+                    "username": user.username,
                     "verification_link": generate_verification_link(user)
                 })\
                 .with_text_template(folder_name="email", template_name="verification.txt")\
@@ -75,9 +77,9 @@ class EmailSender:
                 .send()
 
         Similarly, you can create other email methods such as:
-        
+
         def send_registration_email(user):
-          
+
             subject    = "Welcome to the Platform!"
             from_email = "no-reply@example.com"
 
@@ -89,9 +91,9 @@ class EmailSender:
                 .with_text_template(folder_name='emails', template_name='registration.html')\
                 .with_html_template(folder_name='emails', template_name='registeration.txt')\
                 .send()
-                
-        This approach allows you to abstract email sending into different functions for 
-        various use cases (e.g., registration, verification, password reset), 
+
+        This approach allows you to abstract email sending into different functions for
+        various use cases (e.g., registration, verification, password reset),
         but at the same time allows the email sender class to be a single source of truth while allowing the
         sending logic clean, consistent, and reusable.
     """
@@ -105,11 +107,12 @@ class EmailSender:
         self.subject: Optional[str]       = None
         self.html_template: Optional[str] = None
         self.text_template: Optional[str] = None
+        self.idempotency_key              = None
         self.context: Dict[str, str]      = {}
         self.headers: Dict[str, str]      = {}
         self.list_of_recipients           = set()
         self.email_id                     = token_hex()
-      
+
         self.fields_to_reset = {
             EmailSenderConstants.Fields.FROM_EMAIL.value: None,
             EmailSenderConstants.Fields.TO_EMAIL.value: [],
@@ -118,10 +121,11 @@ class EmailSender:
             EmailSenderConstants.Fields.TEXT_TEMPLATE.value: None,
             EmailSenderConstants.Fields.CONTEXT.value: {},
             EmailSenderConstants.Fields.HEADERS.value: {},
+            EmailSenderConstants.Fields.IDEMPOTENCY_KEY: None,
         }
 
         safe_set_language()
-            
+
     @classmethod
     def create(cls) -> "EmailSender":
         """
@@ -144,7 +148,7 @@ class EmailSender:
         """
         if not email:
             return self
-        
+
         self.from_email = email
         return self
 
@@ -152,7 +156,7 @@ class EmailSender:
         """
         Set the recipient(s) of the email.
 
-        sets a single recipient to the recipient field. 
+        sets a single recipient to the recipient field.
 
         Args:
             recipients (Union[str, List[str]]): A single email address or a list of email addresses.
@@ -160,9 +164,9 @@ class EmailSender:
               The list has been left to maintain backwards compatibility. If you add a list
               of emails e.g ["first_email@example.com", "second_email@example.com"] only the
               first email will be used "first_email@example.com".
-              
+
               If you want to add multiple emails use the `.add_new_recipient()` method.
-              
+
               Do not call the method `.to(...)` to add multiple emails because it will only change
               the `to_email` not add to it.
 
@@ -171,7 +175,7 @@ class EmailSender:
         """
         if not recipient:
             return self
-        
+
         if isinstance(recipient, list) and recipient:
             self.to_email = recipient[0]
         else:
@@ -188,8 +192,8 @@ class EmailSender:
         Returns:
             EmailSender: The current instance for chaining.
         """
-      
-        self.subject = subject 
+
+        self.subject = subject
         return self
 
     def with_context(self, context: Dict) -> "EmailSender":
@@ -204,13 +208,13 @@ class EmailSender:
         """
 
         if not isinstance(context, dict):
-            raise ContextIsNotADictionary(ContextMessages.format_message(msg=ContextMessages.CONTEXT_ERROR, 
-                                                                         context=context, 
+            raise ContextIsNotADictionary(ContextMessages.format_message(msg=ContextMessages.CONTEXT_ERROR,
+                                                                         context=context,
                                                                          context_type=type(context)
                                                                          ))
 
         self.context = context
-        
+
         return self
 
     def with_html_template(self, template_name: str, folder_name: str = None) -> "EmailSender":
@@ -228,7 +232,7 @@ class EmailSender:
         """
         if not template_name:
             return self
-         
+
         self.html_template = self._create_path(template_name, folder_name)
         return self
 
@@ -245,30 +249,48 @@ class EmailSender:
         Returns:
             EmailSender: The current instance for method chaining.
         """
-        
+
         self.text_template = self._create_path(template_name, folder_name)
+        return self
+
+    def with_idempotency_key(self, idempotency_key: str | uuid.UUID) -> "EmailSender":
+        """
+        Attach an idempotency key to the outgoing email.
+
+        The key is included in the X-Idempotency-Key header
+        for tracing and application-level deduplication.
+
+        Duplicate detection is the responsibility of the
+        consuming application.
+        """
+
+        if not isinstance(idempotency_key, (str, uuid.UUID)):
+            raise InvalidIdempotencyKey("The idempotency key entered is not a string or a uuid"
+                                        f"Expected a string or a UUID got {type(idempotency_key).__name__}"
+                                        )
+        self.idempotency_key = str(idempotency_key)
         return self
 
     def add_new_recipient(self, recipient: str) -> "EmailSender":
         """
         Adds an additional email recipient to the list of recipients.
 
-        This method ensures no duplicate recipients are added by storing 
+        This method ensures no duplicate recipients are added by storing
         them internally in a set.
 
         Args:
             recipient (str): The email address to add as a recipient.
          """
-        
+
         if not recipient or recipient is None:
-            return self 
-        
+            return self
+
         if not isinstance(recipient, str):
             raise IncorrectEmailSenderFieldType(FieldMessages.FIELD_TYPE_IS_INCORRECT, expected_type=recipient, received_type=type(recipient))
-            
+
         self.list_of_recipients.add(recipient)
         return self
-            
+
     def _raise_if_template_path_not_found(self, email_path: str) -> None:
         """
         Checks whether a given template path exists within the email templates directory.
@@ -286,7 +308,7 @@ class EmailSender:
             EmailTemplateDirNotFound: If the 'email_templates' folder is missing.
             TemplateNotFound: If the given email template file does not exist.
         """
-     
+
         if not exists(TEMPLATES_DIR):
             raise TemplateDirNotFound(message=TemplateMessages.PRIMARY_TEMPLATE_MISSING)
 
@@ -322,9 +344,9 @@ class EmailSender:
             raise EmailSenderBaseException(error_msg.format(template_type=type(template_name).__name__))
 
         if folder_name is None:
-            return join(EMAIL_TEMPLATES_DIR, template_name)  
+            return join(EMAIL_TEMPLATES_DIR, template_name)
         return join(EMAIL_TEMPLATES_DIR, folder_name, template_name)
-      
+
     def with_headers(self, headers: Dict) -> "EmailSender":
         """
         Set custom headers for the email.
@@ -340,18 +362,18 @@ class EmailSender:
         """
         if headers is None:
             headers = {}
-                      
+
         if not isinstance(headers, dict):
             error_msg = _("'Headers' must be a dictionary but got type '{headers_type}' instead")
             raise EmailSenderBaseException(error_msg.format(headers_type=type(headers).__name__))
-                
+
         self.headers = headers
         return self
 
     def _validate(self):
         """ """
         if not all([self.from_email, self.to_email, self.subject, self.html_template, self.text_template]):
-            
+
             error_msg =  _("All email components (from, to, subject, html, text) must be set before sending.")
             raise EmailSenderBaseException(error_msg)
 
@@ -363,6 +385,11 @@ class EmailSender:
     def clear_from_email(self) -> "EmailSender":
         """Clears the field of the sender"""
         self.from_email = None
+        return self
+
+    def clear_idempotency_key(self) -> "EmailSender":
+        """Clears the field for idempotency key"""
+        self.idempotency_key = None
         return self
 
     def clear_to_email(self) -> "EmailSender" :
@@ -390,30 +417,36 @@ class EmailSender:
         self.text_template = None
         return self
 
-    def clear_all_fields(self)  -> "EmailSender":
+    def clear_all_fields(self) -> "EmailSender":
         """Clear all the fields"""
 
         for field_name, default_field in self.fields_to_reset.items():
-            setattr(self, field_name, default_field)
+            attr_name = field_name.value if hasattr(field_name, "value") else field_name
+            value = default_field.copy() if isinstance(default_field, (dict, list)) else default_field
+            setattr(self, attr_name, value)
         return self
 
-    def _get_recipients(self):
+    def _get_recipients(self) -> list[str]:
         """
-        Returns a combined list of email recipients.
+        Return a list of unique email recipients.
 
-        This includes the primary recipient `self.to_email` (if provided and not None)
-        and any additional recipients from `self.list_of_recipients`.
+        The primary recipient is included first, followed by
+        additional recipients from list_of_recipients.
+
+        Duplicate email addresses are removed.
 
         Returns:
-            list: A list of recipient email addresses.
+            list[str]: A list of unique recipient email addresses.
         """
         recipients = []
-        
+
         if self.to_email:
             recipients.append(self.to_email)
+
         if self.list_of_recipients:
             recipients.extend(self.list_of_recipients)
-        return recipients
+
+        return list(dict.fromkeys(recipients))
 
     def send(self, auto_reset: bool = False) -> int:
         """
@@ -432,18 +465,26 @@ class EmailSender:
             int: The number of successfully delivered messages (typically 1 if successful).
         """
         self._validate()
-            
+
         text_content = render_to_string(self.text_template, context=self.context)
         html_content = render_to_string(self.html_template, context=self.context)
+
+        headers = dict(self.headers or {})
+
+        if self.idempotency_key:
+            # Attach as a custom header (useful for SMTP relays & audit logs)
+            headers["X-Idempotency-Key"] = self.idempotency_key
+        else:
+            headers.pop("X-Idempotency-Key", None)
 
         msg = EmailMultiAlternatives(
             subject=self.subject,
             body=text_content,
             from_email=self.from_email,
             to=self._get_recipients(),
-            headers=self.headers or {},
+            headers=headers,
         )
-     
+
         msg.attach_alternative(html_content, "text/html")
 
         try:
@@ -451,7 +492,7 @@ class EmailSender:
             is_sent = True if resp > 0 else False
             if auto_reset:
                 self.clear_all_fields()
-    
+
             return (resp, is_sent)
 
         except EmailSendError as e:
